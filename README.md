@@ -1,2 +1,1 @@
-# coffee
-coffee defects main
+pip install -r requirements.txt
