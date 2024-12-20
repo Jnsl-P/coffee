@@ -23,6 +23,9 @@ from flask_migrate import Migrate
 from datetime import datetime
 
 from flask import Flask, render_template, redirect, url_for
+from sqlalchemy import desc
+import base64
+
 
 
 
@@ -42,6 +45,7 @@ app.config["SECRET_KEY"] = "65b0b774279de460f1cc5c92"
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config["final_detected_images"] = "./final_detected_images"
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
@@ -102,6 +106,7 @@ class DefectsDetected(db.Model):
     scan_number = db.Column(db.Integer, nullable=False)
     date_scanned = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     defectsDetected = db.Column(db.JSON, nullable=False)
+    scanned_image = db.Column(db.String(255), nullable=False)
     batch_id = db.Column(db.Integer, db.ForeignKey('batch_session.batch_id'), nullable=False)  # Foreign key
 
     # Define relationship to BatchSession
@@ -144,6 +149,7 @@ def create_tables():
 #         db.session.query(model).delete()
 #         db.session.commit()
         
+# clear_table(DefectsDetected)  # Replace with your model class
 # clear_table(BatchSession)  # Replace with your model class
 # =====truncate table end=====
 
@@ -359,7 +365,6 @@ def batch_scan_page(id, title):
     bean_used = batch_used.bean_type
     last_scan = DefectsDetected.query.filter(DefectsDetected.batch_id == id).order_by(DefectsDetected.scan_number.desc()).first()
     print("LAST SCAN:",last_scan)
-    
     if last_scan:
         last_scan_number = last_scan.scan_number
     else:
@@ -377,6 +382,20 @@ def batch_scan_page(id, title):
     
     
     if request.method == "POST":
+        
+        # ======save frame
+        final_annotated_image = camera_obj.get_last_frame()
+        path = "./static/final_detected_images"
+        if not os.path.exists(path):
+            os.makedirs(path)
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        frame_name = f"{session['user_id']}_{timestamp}_image.jpg"  # Change extension to .png if needed
+
+        # Full path to save the frame
+        save_path = os.path.join(path, frame_name)
+        # ======save frame
+        
         # last_scan = BatchSession.query.order_by(BatchSession.scan_number.desc()).first()
 
         # Now check the previous ID
@@ -390,11 +409,19 @@ def batch_scan_page(id, title):
             for index, defect in enumerate(defects_detected):
                 defects_array[defect] = defects_count[index]
         
+        if not len(defects_array) > 0:
+            defects_array = {"none": "none"}
+            
+            
         newScan = DefectsDetected(
             scan_number=scan_number,
             defectsDetected=defects_array,
-            batch_id = id
+            scanned_image=frame_name,
+            batch_id = id,
+            
         )
+        # save frame
+        cv2.imwrite(save_path, final_annotated_image)
         db.session.add(newScan)
         db.session.commit()
         
@@ -475,9 +502,13 @@ def gen(camera):
 def stop_object_py():
     global camera_obj
     try:
-        camera_obj.get_last_frame()
-        print("SUCCESS UPDATING FRAME FILE")        
-        return jsonify(success=True, message="Scanning")
+        captured_frame = camera_obj.get_last_frame()
+        print("SUCCESS UPDATING FRAME FILE")       
+        
+        _, buffer = cv2.imencode('.jpg', captured_frame)
+        # Convert to Base64
+        frame_b64 = base64.b64encode(buffer).decode('utf-8')
+        return jsonify(success=True, message="Scanning", captured_frame=frame_b64)
     except Exception as e:
         return jsonify(success=False, message=str(e))
     
@@ -485,8 +516,25 @@ def stop_object_py():
 def get_defects():
     global camera_obj
     defects = camera_obj.defects
-    print("DEFEFCT:",defects)
-    return render_template('user/partials/defect_result.html', defects=defects)
+    html = render_template('user/partials/defect_result.html', defects=defects)
+    return jsonify({
+        "success":True,
+        "html":html
+    })
+    
+@app.route('/upload', methods=['POST'])
+def upload_image():
+    file = request.files['image']
+    if file:
+        filename = file.filename
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        # Save the file path to the database
+        # Example: INSERT INTO images_table (image_path) VALUES (file_path)
+        
+        return "Image uploaded successfully!"
+    return "No file provided!"
+
 
 # LIVE VIDEO=========== END============================================
 
@@ -565,30 +613,73 @@ def userDashboard():
     
     user_id = session.get("user_id")
 
-    user_batch_sessions = BatchSession.query.filter(BatchSession.user_id==user_id).all()
+    user_batch_sessions = BatchSession.query.filter(BatchSession.user_id==user_id).order_by(BatchSession.batch_id.desc()).all()
     
     return render_template("user/dashboard.html", objects=user_batch_sessions)
 
 
 @app.route("/user/dashboard/view/<int:id>/<string:title>")
 def view_scans(id, title):
-    
     batch = BatchSession.query.get(id)
-    scan_lists = batch.defects_detected    
-    return render_template("user/partials/view_scans.html", scan_lists=scan_lists, batch=batch)
+    scan_lists = batch.defects_detected
+            
+    scan_lists = DefectsDetected.query.filter(DefectsDetected.batch_id == batch.batch_id).order_by(DefectsDetected.scan_number.desc()).all()
+    return render_template("user/view_scans.html", scan_lists=scan_lists, batch=batch)
 
 @app.route("/delete-batch/<int:batch_id>")
 def delete_batch(batch_id):
     batch_selected = BatchSession.query.get(batch_id)
     b = batch_selected.defects_detected
-    for data in b:       
-        db.session.delete(data)
-
-    db.session.delete(batch_selected)
     
+    for data in b:       
+        file_path = './static/final_detected_images/'+ data.scanned_image
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            db.session.delete(data)
+            
+    db.session.delete(batch_selected)
     db.session.commit()
+    
     return redirect(url_for('userDashboard'))
-      
+
+
+
+@app.route("/delete-scan/<int:scan_id>",)
+def delete_scan(scan_id):
+    # Retrieve the DefectsDetected object by ID
+    defect = DefectsDetected.query.get(scan_id)
+    
+    if defect:
+        file_path = './static/final_detected_images/'+defect.scanned_image
+        if os.path.exists(file_path):
+            os.remove(file_path)
+        
+        
+            # Delete the defect from the database
+            db.session.delete(defect)
+            db.session.commit()
+            
+            batch = BatchSession.query.get(defect.batch_id)
+            scan_lists = batch.defects_detected
+            for index,scan in enumerate(scan_lists):
+                scan.scan_number = index+1
+                db.session.commit()
+                
+                
+                
+            scan_lists = DefectsDetected.query.filter(DefectsDetected.batch_id == batch.batch_id).order_by(DefectsDetected.scan_number.desc()).all()
+            print(scan_lists)
+        
+        
+            return render_template("user/partials/view_scans_update.html", scan_lists=scan_lists, batch=batch)
+    
+    # If item not found, return a 404 error
+    return redirect(url_for("userDashboard"))
+
+    
+    # return redirect("url_for('userDashboard')")
+    # return render_template("user/view_scans.html")
+
       
 
 

@@ -27,7 +27,7 @@
 }
 
 .title > h3 {
-  font-size: 3em;
+  font-size: 2em;
   font-family: "Oswald", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;
@@ -137,6 +137,24 @@ table.custom-bordered td:first-child {
   color: black;
 }
 
+.delete-session-btn:hover{
+  background-color: rgba(255, 0, 0, 0.199);
+  color: white;
+}
+
+.new-scan-btn:hover{
+  background-color: rgba(0, 0, 0, 0.842);
+  color: white;
+}
+
+.delete-session-btn{
+  color: red;
+}
+.delete-session-btn:hover{
+  background-color: rgba(255, 0, 0, 0.781);
+  color: white;
+}
+
 /* small */
 @media screen and (min-width: 576px) {
   .scan-img {
@@ -144,6 +162,10 @@ table.custom-bordered td:first-child {
     left: 50%;
     transform: translateX(-50%);
     width: 4rem;
+  }
+
+  .title > h3 {
+    font-size: 3em;
   }
 }
 
@@ -156,6 +178,12 @@ table.custom-bordered td:first-child {
   display: none;
 }
 
+.scrolling{
+  overflow-x: auto;
+}
+
+
+
 /* medium */
 @media screen and (min-width: 768px) {
   .scan-img {
@@ -163,6 +191,10 @@ table.custom-bordered td:first-child {
     left: 50%;
     transform: translateX(-50%);
     width: 4rem;
+  }
+
+  .title > h3 {
+    font-size: 4em;
   }
 }
 

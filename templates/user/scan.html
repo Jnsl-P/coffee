@@ -29,90 +29,6 @@
     </div>
   </div>
   <div class="col result-container d-flex flex-row overflow-auto">
-    <div
-      class="container py-4 px-2 d-flex flex-column justify-content-start position-relative d-none">
-      <form
-        method="POST"
-        class="pt-2 d-flex flex-column align-items-center form-scan overflow-auto"
-        style="height: 100%">
-        <h1 class="result-title fw-bold">Session Batch</h1>
-        <h2 class="result-title fw-normal fs-6">12-12-24 | 8:32pm</h2>
-        <br />
-        <h2 class="result-title fw-bold fs-4">Scan #: 1</h2>
-        <h1 class="result-title">Results / Outcomes</h1>
-
-        <div>
-          <label for="" class="form-label">Farm:</label>
-          <input
-            type="text"
-            class="form-control fw-bold"
-            placeholder="name@example.com"
-            value="DLSUD Farm" />
-        </div>
-
-        <br />
-
-        <div>
-          <label for="" class="form-label">Bean type:</label>
-          <input
-            type="text"
-            class="form-control fw-bold"
-            placeholder="name@example.com"
-            value="Robusta" />
-        </div>
-
-        <br />
-
-        <div>
-          <label for="" class="form-label">Defects:</label>
-          
-          <ul id="defects_list" class="list-group"></ul>
-        </div>
-
-        <div
-          id="start-camera-btn"
-          class="my-3 my-2 p-3 py-2 px-5 btn btn-light rounded-pill text-center">
-          Start Camera
-        </div>
-
-        <div
-          class="row gap-lg-2 gap-sm-1 flex-wrap-reverse d-none align-items-center"
-          id="stopAndCaptureBtn">
-          <div
-            class="col col-sm my-3 my-2 p-3 py-2 px-5 btn btn-danger rounded-pill"
-            id="cancelStopBtn">
-            Cancel/Stop
-          </div>
-          <button
-            class="d-none"
-            id="show_defects_btn"
-            hx-get="/get_defects"
-            hx-target="#defects_list"
-            hx-swap="innerHTML"></button>
-          <div
-            class="col col-sm my-3 my-2 p-3 py-2 px-5 btn btn-secondary rounded-pill"
-            id="takePhotoBtn">
-            Take Photo
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              height="24px"
-              viewBox="0 -960 960 960"
-              width="24px"
-              fill="#e8eaed">
-              <path
-                d="M480-260q75 0 127.5-52.5T660-440q0-75-52.5-127.5T480-620q-75 0-127.5 52.5T300-440q0 75 52.5 127.5T480-260Zm0-80q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM160-120q-33 0-56.5-23.5T80-200v-480q0-33 23.5-56.5T160-760h126l74-80h240l74 80h126q33 0 56.5 23.5T880-680v480q0 33-23.5 56.5T800-120H160Zm0-80h640v-480H638l-73-80H395l-73 80H160v480Zm320-240Z" />
-            </svg>
-          </div>
-        </div>
-
-        <input
-          type="submit"
-          id="submitResultsBtn"
-          class="btn btn-secondary rounded-pill d-none my-3 my-2 p-3 py-2 px-5"
-          value="Submit Scan" />
-      </form>
-    </div>
-
     <div class="container py-4 px-2 d-flex flex-column justify-content-center">
       <div class="container-sm">
         <img
@@ -126,7 +42,7 @@
           <div>
             <label for="input_session_name" class="form-label"
               >Session Name:</label
-            >
+            required >
             <input
               name="input_session_name"
               id="input_session_name"
@@ -144,7 +60,7 @@
               name="input_farm"
               type="text"
               class="form-control"
-              placeholder="" />
+              placeholder="" required/>
           </div>
 
           <br />
@@ -156,13 +72,13 @@
               id="input_bean_type"
               type="text"
               class="form-control"
-              placeholder="" />
+              placeholder="" required/>
           </div>
 
           <button
             type="submit"
             class="my-3 my-2 p-3 py-2 px-5 btn btn-light rounded-pill">
-            Start
+            Add New Batch
           </button>
         </div>
       </form>
@@ -171,93 +87,4 @@
 </div>
 
 {% endblock content %} {% block script_content %}
-<script>
-  let start_camera_button = $("#start-camera-btn");
-  let stopAndCaptureBtn = $("#stopAndCaptureBtn");
-  let takePhotoBtn = $("#takePhotoBtn");
-  let cancelStopBtn = $("#cancelStopBtn");
-  let submitResultsBtn = $("#submitResultsBtn");
-  let camLogoContainer = $("#camLogoContainer");
-  let spinnerLoading = $(".spinnerLoading");
-  let scannedImage = $("#scannedImage");
-  let show_defects_btn = $("#show_defects_btn");
-
-  start_camera_button.click(function (e) {
-    camLogoContainer.addClass("d-none");
-    spinnerLoading.removeClass("d-none");
-    start_camera_button.addClass("d-none");
-    stopAndCaptureBtn.removeClass("d-none");
-
-    try {
-      /*fetch(`{{url_for("check_camera")}}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            alert(data.error);
-            spinnerLoading.addClass("d-none");
-            stopAndCaptureBtn.addClass("d-none");
-            start_camera_button.removeClass("d-none")
-          } else {
-            scannedImage.attr("src", `{{url_for("video_feed")}}`);
-            scannedImage.on("load", function () {
-              scannedImage.removeClass("d-none");
-              spinnerLoading.addClass("d-none");
-            });
-          }
-        });*/
-
-      scannedImage.attr("src", `{{url_for("video_feed")}}`);
-      scannedImage.on("load", function () {
-        scannedImage.removeClass("d-none");
-        spinnerLoading.addClass("d-none");
-      });
-    } catch (e) {
-      alert(e);
-    }
-  });
-
-  cancelStopBtn.click(function (e) {
-    scannedImage.attr("src", "");
-    scannedImage.addClass("d-none");
-    start_camera_button.removeClass("d-none");
-    stopAndCaptureBtn.addClass("d-none");
-    spinnerLoading.addClass("d-none");
-    camLogoContainer.removeClass("d-none");
-  });
-
-  async function captureEnd() {
-    submitResultsBtn.removeClass("d-none");
-    stopAndCaptureBtn.addClass("d-none");
-    spinnerLoading.removeClass("d-none");
-    scannedImage.attr("src", "");
-    scannedImage.addClass("d-none");
-    try {
-      let response = await fetch("/stop_object_py");
-      let data = await response.json();
-      if (data.success) {
-        scannedImage.attr(
-          "src",
-          `../../static/images/latest_screenshot.jpg?t=${new Date().getTime()}`
-        );
-        show_defects_btn.click();
-      }
-      scannedImage.on("load", function () {
-        spinnerLoading.addClass("d-none");
-        scannedImage.removeClass("d-none");
-      });
-    } catch (error) {
-      console.error("Error stopping scan:", error);
-      alert(
-        "Error occurred while stopping the scan. Please check server logs."
-      );
-    }
-  }
-
-  takePhotoBtn.click(captureEnd);
-</script>
 {% endblock script_content %}

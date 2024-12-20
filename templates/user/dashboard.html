@@ -12,7 +12,7 @@
     class="border border-5 rounded-circle position-relative"
     alt="..."
     style="height: 100px" />
-  <h3>User's name</h3>
+  <h3>{{ session.username}}</h3>
 </div>
 <div
   class="my-3"
@@ -24,27 +24,9 @@
   "></div>
 {% endblock head_content %} {% block content %}
 
-<div class="d-flex justify-content-between mb-2">
-  <button class="btn btn-success">Filter</button>
-
-  <a href="/user/dashboard" class="">
-    <button class="btn btn-success">Dashboard</button>
-  </a>
-  <a href="/user/update-profile" class="">
-    <button class="btn btn-success">Update Profile</button>
-  </a>
-  <a href="/user/change-password" class="">
-    <button class="btn btn-success">Change Password</button>
-  </a>
-  <a href="/user/logout" class="">
-    <button class="btn btn-danger">Logout</button>
-  </a>
-  <a href="/scan">
-    <button class="btn btn-success">Add New Session +</button>
-  </a>
-</div>
+{% include "user/navbar.html" %}
 <br />
-<div class="container-fluid m-0 p-0" id="container-main">
+<div class="container-fluid m-0 " id="container-main">
   <div>
     <div class="mb-3">
       <div class="row session-batches-header p-3 fw-bold fs-5">
@@ -67,7 +49,7 @@
       aria-controls="collapseExample1">
       <div class="col">{{ object.title }}</div>
       <div class="col">
-        {{ object.date_created.strftime('%Y-%m-%d %H:%M') }}
+        {{object.date_created.strftime('%B %d, %Y')}}
       </div>
       <div class="col">{{ object.date_created.strftime('%H:%M') }}</div>
       <div class="col">{{ object.bean_type }}</div>
@@ -78,11 +60,9 @@
       <ul class="list-group gap-2">
         <a
           class="text-decoration-none"
-          hx-target="#container-main"
-          hx-swap="innerHTML"
-          hx-get="/user/dashboard/view/{{ object.batch_id }}/{{ object.title }}"
+          href="/user/dashboard/view/{{ object.batch_id }}/{{ object.title }}"
           ><li
-            class="list-group-item d-flex justify-content-between btn rounded-3">
+            class="list-group-item d-flex justify-content-between btn rounded-3 new-scan-btn">
             <span> View Scans </span
             ><span>
               <svg
@@ -97,9 +77,11 @@
               </svg>
             </span></li
         ></a>
-        <a href="{{ url_for('batch_scan_page', id=object.batch_id, title=object.title) }}" class="text-decoration-none"
+        <a
+          href="{{ url_for('batch_scan_page', id=object.batch_id, title=object.title) }}"
+          class="text-decoration-none"
           ><li
-            class="list-group-item d-flex justify-content-between btn rounded-3">
+            class="list-group-item d-flex justify-content-between btn rounded-3 new-scan-btn">
             <span> Add New Scan </span
             ><span>
               <svg
@@ -114,9 +96,11 @@
               </svg>
             </span></li
         ></a>
-        <a href="{{url_for('delete_batch', batch_id=object.batch_id)}}" class="text-decoration-none"
+        <a
+          href="{{url_for('delete_batch', batch_id=object.batch_id)}}"
+          class="text-decoration-none"
           ><li
-            class="list-group-item d-flex justify-content-between btn text-danger rounded-3">
+            class="list-group-item d-flex justify-content-between btn  rounded-3 delete-session-btn">
             <span> Delete Batch Session </span
             ><span>
               <svg
@@ -134,9 +118,8 @@
       </ul>
     </div>
   </div>
-  
-  {% endfor %} 
-  {#
+
+  {% endfor %} {#
   <table
     class="table flex-wrap text-wrap custom-bordered table-data text-center">
     <thead>

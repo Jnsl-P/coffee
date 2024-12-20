@@ -1,10 +1,15 @@
 {% extends "user/layout2.html" %} {% block head_content %}
 <a href="/user/dashboard"><button class="btn btn-success">Dashboard</button></a>
+<a
+  href="{{ url_for('view_scans', id=objects['batch_used'].batch_id, title=objects['title_used']) }}"
+  ><button class="btn btn-success">View Scans</button></a
+>
 {% endblock head_content %} {% block content %}
 <br />
 <div class="row gap-3 mx-4 mx-md-0 scan-container">
   <div
-    class="col-sm-12 col-lg-8 camera-container p-0 d-flex align-items-center justify-content-center">
+    class="col-sm-12 col-lg-8 camera-container p-0 d-flex align-items-center justify-content-center"
+    id="camContainer">
     <div id="camLogoContainer" class="">
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -36,38 +41,35 @@
         class="pt-2 d-flex flex-column align-items-center form-scan overflow-auto"
         style="height: 100%">
         <h1 class="result-title fw-bold">{{ objects["title_used"] }}</h1>
+        {#
         <h2 class="result-title fw-normal fs-6">12-12-24 | 8:32pm</h2>
+        #}
         <br />
-        <h2 class="result-title fw-bold fs-4">Scan no.: {{ objects["last_scan"] }}</h2>
+        <h2 class="result-title fw-bold fs-4">
+          Scan no.: {{ objects["last_scan"] }}
+        </h2>
         <h1 class="result-title">Results / Outcomes</h1>
 
         <div>
           <label for="" class="form-label">Farm:</label>
-          <input
-            type="text"
-            class="form-control fw-bold"
-            value="{{objects["farm_used"]}}"
-            readonly />
+          <input type="text" class="form-control fw-bold"
+          value="{{objects["farm_used"]}}" readonly />
         </div>
 
         <br />
 
         <div>
           <label for="" class="form-label">Bean type:</label>
-          <input
-            type="text"
-            class="form-control fw-bold"
-            value="{{objects["bean_used"]}}"
-            readonly />
+          <input type="text" class="form-control fw-bold"
+          value="{{objects["bean_used"]}}" readonly />
         </div>
 
         <br />
 
         <div>
           <label for="" class="form-label">Defects:</label>
-          
-            <ul class="list-group" id="defects_list"></ul>
-          
+
+          <ul class="list-group" id="defects_list"></ul>
         </div>
 
         <div
@@ -80,18 +82,13 @@
           class="row gap-lg-2 gap-sm-1 flex-wrap-reverse d-none align-items-center"
           id="stopAndCaptureBtn">
           <div
-            class="col col-sm my-3 my-2 p-3 py-2 px-5 btn btn-danger rounded-pill"
+            class="my-3 my-2 p-3 py-2 px-5 btn btn-danger rounded-pill"
             id="cancelStopBtn">
             Cancel/Stop
           </div>
-          <button
-            class="d-none"
-            id="show_defects_btn"
-            hx-get="/get_defects"
-            hx-target="#defects_list"
-            hx-swap="innerHTML"></button>
+
           <div
-            class="col col-sm my-3 my-2 p-3 py-2 px-5 btn btn-secondary rounded-pill"
+            class="my-3 my-2 p-3 py-2 px-5 btn btn-secondary rounded-pill"
             id="takePhotoBtn">
             Take Photo
             <svg
@@ -127,40 +124,22 @@
   let spinnerLoading = $(".spinnerLoading");
   let scannedImage = $("#scannedImage");
   let show_defects_btn = $("#show_defects_btn");
+  let camContainer = $("#camContainer");
 
   start_camera_button.click(function (e) {
     camLogoContainer.addClass("d-none");
     spinnerLoading.removeClass("d-none");
     start_camera_button.addClass("d-none");
     stopAndCaptureBtn.removeClass("d-none");
+    takePhotoBtn.addClass("d-none");
 
     try {
-      /*fetch(`{{url_for("check_camera")}}`)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data.error) {
-            alert(data.error);
-            spinnerLoading.addClass("d-none");
-            stopAndCaptureBtn.addClass("d-none");
-            start_camera_button.removeClass("d-none")
-          } else {
-            scannedImage.attr("src", `{{url_for("video_feed")}}`);
-            scannedImage.on("load", function () {
-              scannedImage.removeClass("d-none");
-              spinnerLoading.addClass("d-none");
-            });
-          }
-        });*/
-
       scannedImage.attr("src", `{{url_for("video_feed")}}`);
       scannedImage.on("load", function () {
+        takePhotoBtn.removeClass("d-none");
         scannedImage.removeClass("d-none");
         spinnerLoading.addClass("d-none");
+        camContainer.addClass("border-0");
       });
     } catch (e) {
       alert(e);
@@ -174,14 +153,16 @@
     stopAndCaptureBtn.addClass("d-none");
     spinnerLoading.addClass("d-none");
     camLogoContainer.removeClass("d-none");
+    camContainer.removeClass("border-0");
   });
 
-  async function captureEnd() {
+  {#async function captureEnd() {
     submitResultsBtn.removeClass("d-none");
     stopAndCaptureBtn.addClass("d-none");
     spinnerLoading.removeClass("d-none");
     scannedImage.attr("src", "");
     scannedImage.addClass("d-none");
+    camContainer.removeClass("border-0");
     try {
       let response = await fetch("/stop_object_py");
       let data = await response.json();
@@ -190,11 +171,69 @@
           "src",
           `../../static/images/latest_screenshot.jpg?t=${new Date().getTime()}`
         );
-        show_defects_btn.click();
+        /// for htmx
+        /// show_defects_btn.click();ee
       }
       scannedImage.on("load", function () {
         spinnerLoading.addClass("d-none");
         scannedImage.removeClass("d-none");
+        fetch("/get_defects")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.success) {
+              $("#defects_list").html(data.html);
+            }
+          });
+      });
+    } catch (error) {
+      console.error("Error stopping scan:", error);
+      alert(
+        "Error occurred while stopping the scan. Please check server logs."
+      );
+    }
+  }#}
+
+  async function captureEnd() {
+    submitResultsBtn.removeClass("d-none");
+    stopAndCaptureBtn.addClass("d-none");
+    spinnerLoading.removeClass("d-none");
+    scannedImage.attr("src", "");
+    scannedImage.addClass("d-none");
+    camContainer.removeClass("border-0");
+    try {
+      let response = await fetch("/stop_object_py");
+      let data = await response.json();
+      console.log(data)
+      if (data.success) {
+        scannedImage.attr("src",
+        `data:image/jpeg;base64,${data.captured_frame}`)
+        {#scannedImage.attr(
+          "src",
+          /// `../../static/images/latest_screenshot.jpg?t=${new Date().getTime()}`
+        );#}
+        /// for htmx
+        /// show_defects_btn.click();ee
+      }
+      scannedImage.on("load", function () {
+        spinnerLoading.addClass("d-none");
+        scannedImage.removeClass("d-none");
+        fetch("/get_defects")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.success) {
+              $("#defects_list").html(data.html);
+            }
+          });
       });
     } catch (error) {
       console.error("Error stopping scan:", error);

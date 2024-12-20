@@ -1,0 +1,36 @@
+<tbody style="border-top: 0" id="scan_body_container">
+  {% for defect in scan_lists %}
+  <tr class="" id="scan_number_{{defect.id}}">
+    <td class="text-center">
+      <div
+        class="btn button-show"
+        id="liveToastBtn"
+        hx-get="{{ url_for('delete_scan', scan_id=defect.id) }}"
+        hx-target="#scan_body_container"
+        hx-swap="outerHTML">
+        <i class="material-icons" style="font-size: 23px; color: red">delete</i>
+        <div class="text-danger fw-bold">Delete</div>
+      </div>
+    </td>
+    <td>{{ defect.scan_number}}</td>
+    <td>{{ batch.bean_type }}</td>
+    <td>{{ defect.date_scanned.strftime('%B %d, %Y') }}</td>
+    <td>{{ defect.date_scanned.strftime('%H:%M') }}</td>
+    <td>
+      <ul class="text-start">
+        {% for defects_detected in defect.defectsDetected %}
+        <li>
+          {% if defects_detected == "none" %} No defects detected {% else %}
+          {{defects_detected}}
+          <span>{{defect.defectsDetected[defects_detected]}}</span>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </td>
+    <td>TBD</td>
+    <td>{{ batch.farm }}</td>
+    <td><a href="{{defect.scanned_image}}"> View Image </a></td>
+  </tr>
+  {% endfor %}
+</tbody>

@@ -1,0 +1,113 @@
+{% extends "user/layout2.html" %} {% block head_content %}
+<!-- Display flash messages -->
+{% with messages=get_flashed_messages(with_categories=true) %} {% if messages %}
+{% for category, message in messages %}
+<div class="alert alert-{{ category }}">
+  <strong>{{ message }}</strong>
+</div>
+{% endfor %} {% endif %} {% endwith %}
+<div class="d-inline-flex align-items-end gap-3">
+  <img
+    src="{{ url_for('static', filename='images/styles/default_img.png') }}"
+    class="border border-5 rounded-circle position-relative"
+    alt="..."
+    style="height: 100px" />
+  <h3>{{ session.username }}</h3>
+</div>
+
+<div
+  class="my-3"
+  style="
+    width: 100%;
+    height: 3px;
+    background-color: black;
+    border-radius: 20px;
+  "></div>
+{% endblock head_content %} {% block content %}
+
+<div class="container-fluid m-0 p-0">
+  <div class="">
+    <a href="{{ url_for('userDashboard') }} " class="text-decoration-none">
+      <button class="btn btn-success mb-3">Back to Dashboard</button>
+    </a>
+    <a
+      href="{{ url_for('batch_scan_page', id=batch.batch_id,title=batch.title) }}"
+      class="text-decoration-none">
+      <button class="btn btn-success mb-3">Add Scan</button>
+    </a>
+  </div>
+
+  <div class="overflow-auto">
+    <table
+      class="table flex-wrap text-wrap custom-bordered table-data text-center ">
+      <thead>
+        <tr>
+          <th scope="col"></th>
+          <th scope="col" style="width: 100px">Scan No.</th>
+          <th scope="col">Type</th>
+          <th scope="col">Date</th>
+          <th scope="col">Time</th>
+          <th scope="col" style="min-width: 150px">Defects Detected</th>
+          <th scope="col">Grade Quality</th>
+          <th scope="col">Farm</th>
+          <th scope="col">Image</th>
+          <!-- <th scope="col" style="width: 50px;"></th> -->
+        </tr>
+      </thead>
+      <tbody style="border-top: 0" id="scan_body_container">
+        {% for defect in scan_lists %}
+        <tr class="" id="scan_number_{{defect.id}}">
+          <td class="text-center">
+            <div
+              class="btn button-show"
+              id="liveToastBtn"
+              hx-get="{{ url_for('delete_scan', scan_id=defect.id) }}"
+              hx-target="#scan_body_container"
+              hx-swap="outerHTML">
+              <i class="material-icons" style="font-size: 23px; color: red"
+                >delete</i
+              >
+              <div class="text-danger fw-bold">Delete</div>
+            </div>
+          </td>
+          <td>{{ defect.scan_number}}</td>
+          <td>{{ batch.bean_type }}</td>
+          <td>{{ defect.date_scanned.strftime('%B %d, %Y') }}</td>
+          <td>{{ defect.date_scanned.strftime('%H:%M') }}</td>
+          <td>
+            <ul class="text-start">
+              {% for defects_detected in defect.defectsDetected %}
+              <li>
+                {% if defects_detected == "none" %}
+                No defects detected
+                {% else %}
+                {{defects_detected}}
+                <span>{{defect.defectsDetected[defects_detected]}}</span>
+                {% endif %}
+              </li>
+              {% endfor %}
+            </ul>
+          </td>
+          <td>TBD</td>
+          <td>{{ batch.farm }}</td>
+          <td><a target="_blank" href="{{ url_for('static', filename='final_detected_images/' + defect.scanned_image) }}">View Image</a></td>
+
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+
+ 
+
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+  crossorigin="anonymous"></script>
+<script>
+  
+</script>
+{% endblock content %}

@@ -48,8 +48,10 @@ class ObjectDetection:
         return img.tobytes()
 
     def get_last_frame(self):
-        cv2.imwrite(screenshot_path, self.start_detects(self.frame))
-        
+        # cv2.imwrite(screenshot_path, self.start_detects(self.frame))
+        captured = (self.start_detects(self.frame))
+        self.final_annotated_image = captured
+        return self.final_annotated_image
         # print(f"Screenshot saved to {screenshot_path}")
         # self.write_detected_objects(detected_objects)
         
