@@ -12,7 +12,7 @@
     class="border border-5 rounded-circle position-relative"
     alt="..."
     style="height: 100px" />
-  <h3>{{ session.username}}</h3>
+  <h3>{{ current_user.fname }}</h3>
 </div>
 <div
   class="my-3"
@@ -22,11 +22,9 @@
     background-color: black;
     border-radius: 20px;
   "></div>
-{% endblock head_content %} {% block content %}
-
-{% include "user/navbar.html" %}
+{% endblock head_content %} {% block content %} {% include "user/navbar.html" %}
 <br />
-<div class="container-fluid m-0 " id="container-main">
+<div class="container-fluid m-0" id="container-main">
   <div>
     <div class="mb-3">
       <div class="row session-batches-header p-3 fw-bold fs-5">
@@ -38,8 +36,10 @@
       </div>
     </div>
   </div>
+
   {% for object in objects %}
-  <div class="mb-4 session-list">
+
+  <div class="session-list">
     <div
       class="row session-batches p-3 mb-3 session-batches-container"
       data-bs-toggle="collapse"
@@ -48,16 +48,14 @@
       aria-expanded="false"
       aria-controls="collapseExample1">
       <div class="col">{{ object.title }}</div>
-      <div class="col">
-        {{object.date_created.strftime('%B %d, %Y')}}
-      </div>
+      <div class="col">{{object.date_created.strftime('%B %d, %Y')}}</div>
       <div class="col">{{ object.date_created.strftime('%H:%M') }}</div>
       <div class="col">{{ object.bean_type }}</div>
       <div class="col">{{ object.farm }}</div>
     </div>
 
     <div class="collapse" id="collapseExample{{object.batch_id}}">
-      <ul class="list-group gap-2">
+      <ul class="list-group gap-2 mb-4">
         <a
           class="text-decoration-none"
           href="/user/dashboard/view/{{ object.batch_id }}/{{ object.title }}"
@@ -100,7 +98,7 @@
           href="{{url_for('delete_batch', batch_id=object.batch_id)}}"
           class="text-decoration-none"
           ><li
-            class="list-group-item d-flex justify-content-between btn  rounded-3 delete-session-btn">
+            class="list-group-item d-flex justify-content-between btn rounded-3 delete-session-btn">
             <span> Delete Batch Session </span
             ><span>
               <svg
@@ -117,8 +115,8 @@
         ></a>
       </ul>
     </div>
-  </div>
 
+  </div>
   {% endfor %} {#
   <table
     class="table flex-wrap text-wrap custom-bordered table-data text-center">

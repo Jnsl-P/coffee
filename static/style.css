@@ -53,7 +53,7 @@ thead {
   color: grey;
 }
 
-.table-data th {
+.table-data th, .table-summary th {
   background-color: rgba(128, 128, 128, 0.062);
   vertical-align: middle;
 }
@@ -67,7 +67,9 @@ thead {
 }
 
 table.custom-bordered td,
-table.custom-bordered th {
+table.custom-bordered th,
+table.table-summary td,
+table.table-summary th {
   border: 2px solid #dee2e6; /* Default Bootstrap border color */
 }
 

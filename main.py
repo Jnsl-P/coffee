@@ -21,13 +21,11 @@ import asyncio
 from flask import Flask, render_template, url_for
 from flask_migrate import Migrate
 from datetime import datetime
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 from flask import Flask, render_template, redirect, url_for
 from sqlalchemy import desc
 import base64
-
-
-
 
 
 # Path to the shared file for detected objects
@@ -51,19 +49,22 @@ db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 Session(app)
 
+login_manager = LoginManager(app)
+login_manager.login_view = 'userIndex'
+
 process = None  # Global variable to manage the scanning subprocess
 final_detected_objects = []  # Store the results of object detection
 
 camera_obj = None
 
 # User Class
-class User(db.Model):
+class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fname = db.Column(db.String(255), nullable=False)
     lname = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), nullable=False, unique=True)
     username = db.Column(db.String(255), nullable=False, unique=True)
-    edu = db.Column(db.String(255), nullable=False)
+    # edu = db.Column(db.String(255), nullable=False)
     password = db.Column(db.String(255), nullable=False)
     status = db.Column(db.Integer, default=0, nullable=False)
     
@@ -73,17 +74,19 @@ class User(db.Model):
     def __repr__(self):
         return f'User("{self.id}", "{self.fname}", "{self.lname}", "{self.email}", "{self.edu}", "{self.username}", "{self.status}")'
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 
 # Admin Class
-class Admin(db.Model):
+class Admin(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(255), nullable=False, unique=True)
     password = db.Column(db.String(255), nullable=False)
 
     def __repr__(self):
         return f'Admin("{self.username}", "{self.id}")'
-
-# from sqlalchemy import ForeignKeyConstraint
 
     
 # Session Class
@@ -116,32 +119,22 @@ class DefectsDetected(db.Model):
     def __repr__(self):
         return f'DefectsDetected("{self.id}", "{self.batch_id}")'
     
-migrate = Migrate(app, db)
 
 
-def create_tables():
-    with app.app_context():
-        db.create_all()
-        # Check if admin already exists
-        if not Admin.query.first():
-            admin = Admin(
-                username="hilal123",
-                password=bcrypt.generate_password_hash("hilal123", 10),
-            )
-            db.session.add(admin)
-            db.session.commit()
+# with app.app_context():
+#     # DefectsDetected.query.filter(id!=1).delete()
+#     # db.session.commit()
+    
+#     dummy = open("dummy_count.txt", "r")
 
+#     for line in dummy:
+#         scan_number, defects_detected, batch_id, scanned_image = line.strip().split("-")
+#         defects = DefectsDetected(scan_number=int(scan_number), defectsDetected=json.loads(defects_detected), batch_id=int(batch_id), scanned_image=scanned_image)
+        
+#         db.session.add(defects)
 
-# Call create_tables to create the database tables
-# create_tables()
+#     db.session.commit()
 
-# def drop_table():
-#     with app.app_context():
-#         # Drop the BatchSession table
-#         BatchSession.__table__.drop(db.engine)
-#         print("Table 'batch_session' has been dropped.")
-
-# drop_table()
 
 # =====truncate table=====
 # def clear_table(model):
@@ -149,14 +142,18 @@ def create_tables():
 #         db.session.query(model).delete()
 #         db.session.commit()
         
+# clear_table(User)  # Replace with your model class
 # clear_table(DefectsDetected)  # Replace with your model class
 # clear_table(BatchSession)  # Replace with your model class
+    
 # =====truncate table end=====
 
-
+        
 # Main index
 @app.route("/")
 def index():
+    if current_user.is_authenticated:
+        return redirect("/user/dashboard")
     return render_template("index.html", title="")
 
 
@@ -249,7 +246,8 @@ def adminChangePassword():
         )
 
 
-# Admin logout@app.route("/admin/logout")
+# Admin logout
+@app.route("/admin/logout")
 def adminLogout():
     if not session.get("admin_id"):
         return redirect("/admin/")
@@ -260,30 +258,30 @@ def adminLogout():
 
 # ------------------------- User Area ----------------------------
 
-
 # User login
 @app.route("/user/", methods=["POST", "GET"])
 def userIndex():
-    if session.get("user_id"):
+    if current_user.is_authenticated:
         return redirect("/user/dashboard")
+    
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
-        users = User.query.filter_by(email=email).first()
-        if users and bcrypt.check_password_hash(users.password, password):
-            if users.status == 0:
+        user = User.query.filter_by(email=email).first()
+        
+        if user and bcrypt.check_password_hash(user.password, password):
+            if user.status == 0:
                 flash("Your Account is not approved by Admin", "danger")
                 return redirect("/user/")
             else:
-                session["user_id"] = users.id
-                session["username"] = users.username
+                login_user(user)
                 flash("Login Successfully", "success")
                 return redirect("/user/dashboard")
         else:
             flash("Invalid Email and Password", "danger")
             return redirect("/user/")
-    else:
-        return render_template("user/index.html", title="User Login")
+    
+    return render_template("user/index.html", title="User Login")
 
 
 # User Register
@@ -296,7 +294,6 @@ def userSignup():
         lname = request.form.get("lname")
         email = request.form.get("email")
         username = request.form.get("username")
-        edu = request.form.get("edu")
         password = request.form.get("password")
         if (
             fname == ""
@@ -304,7 +301,6 @@ def userSignup():
             or email == ""
             or password == ""
             or username == ""
-            or edu == ""
         ):
             flash("Please fill all the fields", "danger")
             return redirect("/user/signup")
@@ -320,7 +316,6 @@ def userSignup():
                     lname=lname,
                     email=email,
                     password=hash_password,
-                    edu=edu,
                     username=username,
                 )
                 db.session.add(user)
@@ -336,16 +331,15 @@ def userSignup():
 
 # Route to handle image scanning
 @app.route("/scan", methods=["GET", "POST"])
+@login_required
 def scan_page():
     if request.method == "POST":
         session_name = request.form.get("input_session_name")
         farm = request.form.get("input_farm")
         bean_type = request.form.get("input_bean_type")
-        user_Id = session.get("user_id")
-        user_Id = User.query.get(user_Id)
-        # user = User.query.filter(User.id == 2).first()
+        user_Id = current_user.id
        
-        newBatchSession = BatchSession(title=session_name, farm=farm, bean_type=bean_type, user_id=user_Id.id)
+        newBatchSession = BatchSession(title=session_name, farm=farm, bean_type=bean_type, user_id=user_Id)
         db.session.add(newBatchSession)
         db.session.commit()
         
@@ -358,13 +352,14 @@ def scan_page():
     return render_template("user/scan.html")
 
 @app.route("/scan/<int:id>/<string:title>", methods=["GET", "POST"])
+@login_required
 def batch_scan_page(id, title):
     batch_used = BatchSession.query.get(id)
     title_used = batch_used.title 
     farm_used = batch_used.farm
     bean_used = batch_used.bean_type
     last_scan = DefectsDetected.query.filter(DefectsDetected.batch_id == id).order_by(DefectsDetected.scan_number.desc()).first()
-    print("LAST SCAN:",last_scan)
+    
     if last_scan:
         last_scan_number = last_scan.scan_number
     else:
@@ -380,9 +375,7 @@ def batch_scan_page(id, title):
         "last_scan":scan_number,
         }
     
-    
     if request.method == "POST":
-        
         # ======save frame
         final_annotated_image = camera_obj.get_last_frame()
         path = "./static/final_detected_images"
@@ -390,15 +383,14 @@ def batch_scan_page(id, title):
             os.makedirs(path)
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        frame_name = f"{session['user_id']}_{timestamp}_image.jpg"  # Change extension to .png if needed
+        frame_name = f"{current_user.id}_{timestamp}_image.jpg"  # Change extension to .png if needed
 
         # Full path to save the frame
         save_path = os.path.join(path, frame_name)
         # ======save frame
         
         # last_scan = BatchSession.query.order_by(BatchSession.scan_number.desc()).first()
-
-        # Now check the previous ID
+        
         defects_detected = request.form.getlist("defect")
         defects_array = {}
         
@@ -407,6 +399,7 @@ def batch_scan_page(id, title):
             defects_count = list(map(int, defects_count))
             
             for index, defect in enumerate(defects_detected):
+                # insert in dict
                 defects_array[defect] = defects_count[index]
         
         if not len(defects_array) > 0:
@@ -427,29 +420,13 @@ def batch_scan_page(id, title):
         
         message="Data had been added"
         return render_template("user/scan2.html", message=message,objects=objects)
-    
-    
         
     return render_template("user/scan2.html", objects=objects)
 
 
 # ---------------- Object Detection Integration -----------------
 
-final_detected_objects = []  # Store the results of object detection
 
-@app.route("/run_object_py", methods=["GET"])
-def run_object_py():
-    """Start the object scanning process."""
-    global process, final_detected_objects
-    final_detected_objects = []  # Reset detected objects for a new session
-    try:
-        script_path = (
-            r"C:\Users\user\OneDrive\Desktop\CoffeeBeanProject\object\object.py"
-        )
-        process = subprocess.Popen(["python", script_path])
-        return jsonify(success=True)
-    except Exception as e:
-        return jsonify(success=False, error=str(e))
 
 
 # =============================== LIVE VIDEO ==================================================================
@@ -535,71 +512,10 @@ def upload_image():
         return "Image uploaded successfully!"
     return "No file provided!"
 
-
 # LIVE VIDEO=========== END============================================
 
 
 
-@app.route("/get_final_results", methods=["GET"])
-def get_final_results():
-    """Return the detected objects after scanning."""
-    global final_detected_objects
-    return jsonify({"objects": final_detected_objects})
-
-
-def send_detected_objects(objects):
-    """Receive detected objects from the scanning script."""
-    global final_detected_objects
-    final_detected_objects = [
-        {"object_name": obj, "confidence": "N/A"} for obj in objects
-    ]
-
-
-# screenshot
-@app.route("/get_latest_screenshot", methods=["GET"])
-def get_latest_screenshot():
-    screenshot_path = os.path.join("./static/images/", "latest_screenshot.jpg")
-    if os.path.exists(screenshot_path):
-        return send_from_directory("./static/images/", "latest_screenshot.jpg")
-    else:
-        return jsonify({"error": "No screenshot available"}), 404
-
-
-@app.route("/get_detected_objects", methods=["GET"])
-def get_detected_objects():
-    """Retrieve the final detected objects after scanning."""
-    try:
-        if os.path.exists(detected_objects_file):
-            with open(detected_objects_file, "r") as f:
-                objects = json.load(f)
-            return jsonify(
-                success=True, objects=objects
-            )  # Ensure `objects` is a list of dictionaries
-        else:
-            return jsonify(success=False, message="No detected objects found.")
-    except Exception as e:
-        return jsonify(success=False, message=str(e))
-
-
-# update scanned object (screenshots saved)
-@app.route("/update_scanned_objects", methods=["POST"])
-def update_scanned_objects():
-    data = request.get_json()
-    user_id = data.get("user_id")
-    objects = data.get("objects")
-
-    if not user_id or not objects:
-        return jsonify({"error": "Invalid data"}), 400
-
-    user = User.query.get(user_id)
-    if user:
-        user.scanned_objects = ", ".join(
-            objects
-        )  # Save objects as a comma-separated string
-        db.session.commit()
-        return jsonify({"success": "Objects updated successfully"}), 200
-    else:
-        return jsonify({"error": "User not found"}), 404
 
 
 # =============================== END CV ===============================
@@ -607,24 +523,75 @@ def update_scanned_objects():
 
 # User dashboard
 @app.route("/user/dashboard")
+@login_required
 def userDashboard():
-    if not session.get("user_id"):
-        return redirect("/user/")
+    # if not session.get("user_id"):
+    #     return redirect("/user/")
     
-    user_id = session.get("user_id")
+    # user_id = session.get("user_id")
 
+    user_id = current_user.id
     user_batch_sessions = BatchSession.query.filter(BatchSession.user_id==user_id).order_by(BatchSession.batch_id.desc()).all()
     
     return render_template("user/dashboard.html", objects=user_batch_sessions)
 
-
 @app.route("/user/dashboard/view/<int:id>/<string:title>")
+@login_required
 def view_scans(id, title):
     batch = BatchSession.query.get(id)
     scan_lists = batch.defects_detected
             
     scan_lists = DefectsDetected.query.filter(DefectsDetected.batch_id == batch.batch_id).order_by(DefectsDetected.scan_number.desc()).all()
     return render_template("user/view_scans.html", scan_lists=scan_lists, batch=batch)
+
+@app.route("/user/dashboard/view/<int:id>/<string:title>/summary")
+@login_required
+def view_summary(id, title):
+    batch_id = id
+    batch_title = title
+    
+    all_defects = DefectsDetected.query.filter(DefectsDetected.batch_id == batch_id).all()
+    
+    defects_list_sum = {}
+    if all_defects:
+        for defects in all_defects:
+            defects_detected = defects.defectsDetected
+            for key, value in defects_detected.items():
+                if key in defects_list_sum:
+                    defects_list_sum[key] += value
+                else:
+                    defects_list_sum[key] = value
+                    
+    primary_defects_name = ["full black",
+                       "full sour",
+                       "dried cherry",
+                       "fungus",
+                       "foreign matter",
+                       "Severe Insect Damage",
+                       ]
+    
+    primary_defects_list = {}
+    keys_to_delete = []
+    for key in defects_list_sum:
+        if key in primary_defects_name:
+            primary_defects_list[key] = defects_list_sum[key]
+            keys_to_delete.append(key)      
+    
+    
+    for key in keys_to_delete:
+        del defects_list_sum[key]
+        
+                    
+    
+    objects = {
+        "batch_id":batch_id,
+        "batch_title":batch_title, 
+        "defects_list_sum":defects_list_sum,
+        "primary_defects_list":primary_defects_list
+    }
+    
+    return render_template("user/view_summary.html", objects=objects)
+    
 
 @app.route("/delete-batch/<int:batch_id>")
 def delete_batch(batch_id):
@@ -644,16 +611,15 @@ def delete_batch(batch_id):
 
 
 
-@app.route("/delete-scan/<int:scan_id>",)
+@app.route("/delete-scan/<int:scan_id>")
 def delete_scan(scan_id):
     # Retrieve the DefectsDetected object by ID
     defect = DefectsDetected.query.get(scan_id)
     
     if defect:
-        file_path = './static/final_detected_images/'+defect.scanned_image
+        file_path = './static/final_detected_images/'+ defect.scanned_image
         if os.path.exists(file_path):
             os.remove(file_path)
-        
         
             # Delete the defect from the database
             db.session.delete(defect)
@@ -662,39 +628,33 @@ def delete_scan(scan_id):
             batch = BatchSession.query.get(defect.batch_id)
             scan_lists = batch.defects_detected
             for index,scan in enumerate(scan_lists):
-                scan.scan_number = index+1
+                scan.scan_number = index + 1
                 db.session.commit()
                 
-                
-                
             scan_lists = DefectsDetected.query.filter(DefectsDetected.batch_id == batch.batch_id).order_by(DefectsDetected.scan_number.desc()).all()
-            print(scan_lists)
         
+            return render_template("user/partials/view_scans_update.html", scan_lists=scan_lists, batch=batch)    
         
-            return render_template("user/partials/view_scans_update.html", scan_lists=scan_lists, batch=batch)
-    
-    # If item not found, return a 404 error
-    return redirect(url_for("userDashboard"))
+        batch = BatchSession.query.get(defect.batch_id)
+        scan_lists = batch.defects_detected
+        scan_lists = DefectsDetected.query.filter(DefectsDetected.batch_id == batch.batch_id).order_by(DefectsDetected.scan_number.desc()).all()
+        
+    return render_template("user/partials/view_scans_update.html", scan_lists=scan_lists, batch=batch)
 
     
     # return redirect("url_for('userDashboard')")
     # return render_template("user/view_scans.html")
 
-      
-
-
 # User logout
 @app.route("/user/logout")
+@login_required
 def userLogout():
-    if not session.get("user_id"):
-        return redirect("/user/")
-    session.pop("user_id", None)
-    session.pop("username", None)
+    logout_user()
     return redirect("/")
-
 
 # User change password
 @app.route("/user/change-password", methods=["POST", "GET"])
+@login_required
 def userChangePassword():
     if not session.get("user_id"):
         return redirect("/user/")

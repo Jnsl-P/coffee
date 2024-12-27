@@ -1,0 +1,5 @@
+2-{"full sour": 10, "partial black": 5}-2-1_20241227_103412_image.jpg
+3-{"full black": 8}-2-1_20241227_103412_image.jpg
+4-{"shell": 2}-2-1_20241227_103412_image.jpg
+5-{"broken": 5}-2-1_20241227_103412_image.jpg
+6-{"parchment": 3, "full sour": 10}-2-1_20241227_103412_image.jpg

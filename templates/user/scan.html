@@ -67,12 +67,15 @@
 
           <div>
             <label for="#input_bean_type" class="form-label">Bean type:</label>
-            <input
-              name="input_bean_type"
+              <select name="input_bean_type"
               id="input_bean_type"
-              type="text"
               class="form-control"
-              placeholder="" required/>
+              placeholder="" required>
+                <option selected disabled required></option>
+                <option value="Liberica">Liberica</option>
+                <option value="Excelsa">Excelsa</option>
+                <option value="Robusta">Robusta</option>
+              </select>
           </div>
 
           <button

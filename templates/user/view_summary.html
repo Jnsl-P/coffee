@@ -1,0 +1,172 @@
+{% extends "user/layout2.html" %} {% block head_content %}
+<!-- Display flash messages -->
+{% with messages=get_flashed_messages(with_categories=true) %} {% if messages %}
+{% for category, message in messages %}
+<div class="alert alert-{{ category }}">
+  <strong>{{ message }}</strong>
+</div>
+{% endfor %} {% endif %} {% endwith %}
+<div class="d-inline-flex align-items-end gap-3">
+  <img
+    src="{{ url_for('static', filename='images/styles/default_img.png') }}"
+    class="border border-5 rounded-circle position-relative"
+    alt="..."
+    style="height: 100px" />
+  <h3>{{ current_user.fname }}</h3>
+</div>
+
+<div
+  class="my-3"
+  style="
+    width: 100%;
+    height: 3px;
+    background-color: black;
+    border-radius: 20px;
+  "></div>
+{% endblock head_content %} {% block content %}
+
+<div class="container-fluid m-0 p-0">
+  <div class="">
+    <a
+      href="{{ url_for('view_scans', id=objects['batch_id'], title=objects['batch_title']) }} "
+      class="text-decoration-none">
+      <button class="btn btn-success mb-3">View Scans</button>
+    </a>
+    <a href="" class="text-decoration-none">
+      <button class="btn btn-success mb-3">Detailed Summary</button>
+    </a>
+  </div>
+  <div class="overflow-auto">
+    <h1>Overall</h1>
+    <table class="table flex-wrap text-wrap table-summary text-center">
+      <h2>Summary - Category 1 Defects</h2>
+      <thead>
+        <tr>
+          <th scope="col">Defects Name</th>
+          <th scope="col">Count</th>
+        </tr>
+      </thead>
+      <tbody style="border-top: 0" id="scan_body_container">
+        {% for defect in objects['primary_defects_list'] %}
+        <tr>
+          <td scope="row">{{ defect }}</td>
+          <td>{{ objects["primary_defects_list"][defect] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <table class="table flex-wrap text-wrap table-summary text-center">
+      <h2>Summary - Category 2 Defects</h2>
+      <thead>
+        <tr>
+          <th scope="col">Defects Name</th>
+          <th scope="col">Count</th>
+        </tr>
+      </thead>
+      <tbody style="border-top: 0" id="scan_body_container">
+        {% for defect in objects['defects_list_sum'] %}
+        <tr>
+          <td scope="row">{{ defect }}</td>
+          <td>{{ objects["defects_list_sum"][defect] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {#
+    <table class="table flex-wrap text-wrap table-summary text-center">
+      <h2>Summary - Category 1 Defects</h2>
+      <thead>
+        <tr>
+          <th scope="col">Defects Name</th>
+          <th scope="col">Count</th>
+        </tr>
+      </thead>
+      <tbody style="border-top: 0" id="scan_body_container">
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="table flex-wrap text-wrap table-summary text-center">
+      <h2>Summary - Category 2 Defects</h2>
+      <thead>
+        <tr>
+          <th scope="col">Defects Name</th>
+          <th scope="col">Count</th>
+        </tr>
+      </thead>
+      <tbody style="border-top: 0" id="scan_body_container">
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <td scope="row">Partial Sour</td>
+          <td>2</td>
+        </tr>
+      </tbody>
+    </table>
+    #}
+  </div>
+</div>
+
+<script
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+  crossorigin="anonymous"></script>
+<script></script>
+{% endblock content %}

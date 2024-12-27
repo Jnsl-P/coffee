@@ -12,7 +12,7 @@
     class="border border-5 rounded-circle position-relative"
     alt="..."
     style="height: 100px" />
-  <h3>{{ session.username }}</h3>
+  <h3>{{ current_user.fname }}</h3>
 </div>
 
 <div
@@ -35,6 +35,11 @@
       class="text-decoration-none">
       <button class="btn btn-success mb-3">Add Scan</button>
     </a>
+    <a
+      href="{{ url_for('view_summary', id=batch.batch_id, title=batch.title) }}"
+      class="text-decoration-none">
+      <button class="btn btn-success mb-3">View Summary</button>
+    </a>
   </div>
 
   <div class="overflow-auto">
@@ -48,7 +53,6 @@
           <th scope="col">Date</th>
           <th scope="col">Time</th>
           <th scope="col" style="min-width: 150px">Defects Detected</th>
-          <th scope="col">Grade Quality</th>
           <th scope="col">Farm</th>
           <th scope="col">Image</th>
           <!-- <th scope="col" style="width: 50px;"></th> -->
@@ -88,7 +92,6 @@
               {% endfor %}
             </ul>
           </td>
-          <td>TBD</td>
           <td>{{ batch.farm }}</td>
           <td><a target="_blank" href="{{ url_for('static', filename='final_detected_images/' + defect.scanned_image) }}">View Image</a></td>
 
