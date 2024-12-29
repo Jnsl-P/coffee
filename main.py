@@ -552,6 +552,33 @@ def view_summary(id, title):
     
     all_defects = DefectsDetected.query.filter(DefectsDetected.batch_id == batch_id).all()
     
+    primary_defects_name = [
+        "full black",
+        "full sour",
+        "dried cherry",
+        "fungus",
+        "foreign matter",
+        "severe insect Damage"
+        ]
+    
+    equivalent_values = {
+        "full black":1
+        ,"full sour":1
+        ,"dried cherry":1
+        ,"fungus":1
+        ,"foreign matter":1
+        ,"severe insect Damage":5
+        ,"partial black":3
+        ,"partial sour":3
+        ,"parchment":5
+        ,"floater":5
+        ,"immature":5
+        ,"withered":5
+        ,"shell":5
+        ,"broken":5
+        ,"husk":5,
+        "slight insect damage":10}
+    
     defects_list_sum = {}
     if all_defects:
         for defects in all_defects:
@@ -559,30 +586,29 @@ def view_summary(id, title):
             for key, value in defects_detected.items():
                 if key in defects_list_sum:
                     defects_list_sum[key] += value
+                    
                 else:
+                    # divide = defects_list_sum[key] // equivalent_values[key]
                     defects_list_sum[key] = value
                     
-    primary_defects_name = ["full black",
-                       "full sour",
-                       "dried cherry",
-                       "fungus",
-                       "foreign matter",
-                       "Severe Insect Damage",
-                       ]
+    # equivalent full defect values
+    full_defects_count = 0
+    for key in defects_list_sum:    
+        divide = defects_list_sum[key] // equivalent_values[key]
+        defects_list_sum[key] = defects_list_sum[key], divide
     
+    
+    # separate primary defects
     primary_defects_list = {}
     keys_to_delete = []
     for key in defects_list_sum:
         if key in primary_defects_name:
             primary_defects_list[key] = defects_list_sum[key]
-            keys_to_delete.append(key)      
-    
+            keys_to_delete.append(key)
     
     for key in keys_to_delete:
         del defects_list_sum[key]
         
-                    
-    
     objects = {
         "batch_id":batch_id,
         "batch_title":batch_title, 
@@ -592,6 +618,18 @@ def view_summary(id, title):
     
     return render_template("user/view_summary.html", objects=objects)
     
+# def view_summary_overall(id):
+#     batch_id = id
+#     primary_defects_name = [
+#         {"partial black":"full black"},
+#         {"partial sour","full sour"},
+#         {"dried cherry"},   
+#         {:"fungus"},
+#         {:"foreign matter"},
+#         {:"Severe Insect Damage"}
+#         ]
+    
+#     print()
 
 @app.route("/delete-batch/<int:batch_id>")
 def delete_batch(batch_id):

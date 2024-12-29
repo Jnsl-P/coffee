@@ -7,11 +7,11 @@
 </div>
 {% endfor %} {% endif %} {% endwith %}
 <div class="d-inline-flex align-items-end gap-3">
-  <img
+  {#<img
     src="{{ url_for('static', filename='images/styles/default_img.png') }}"
     class="border border-5 rounded-circle position-relative"
     alt="..."
-    style="height: 100px" />
+    style="height: 100px" />#}
   <h3>{{ current_user.fname }}</h3>
 </div>
 
@@ -44,7 +44,7 @@
 
   <div class="overflow-auto">
     <table
-      class="table flex-wrap text-wrap custom-bordered table-data text-center ">
+      class="table flex-wrap text-wrap custom-bordered table-data text-center">
       <thead>
         <tr>
           <th scope="col"></th>
@@ -64,14 +64,52 @@
           <td class="text-center">
             <div
               class="btn button-show"
-              id="liveToastBtn"
-              hx-get="{{ url_for('delete_scan', scan_id=defect.id) }}"
-              hx-target="#scan_body_container"
-              hx-swap="outerHTML">
+              type="button"
+              data-bs-toggle="modal"
+              data-bs-target="#modal_{{ defect.id }}"
+              id="liveToastBtn">
               <i class="material-icons" style="font-size: 23px; color: red"
                 >delete</i
               >
               <div class="text-danger fw-bold">Delete</div>
+            </div>
+            <div
+              class="modal fade"
+              id="modal_{{ defect.id }}"
+              tabindex="-1"
+              aria-labelledby="exampleModalLabel"
+              aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header border-0">
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                      aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body text-center">
+                    <h5>Are you sure you want to delete this scan?</h5>
+                  </div>
+                  <div class="modal-footer border-0">
+                    <button
+                      type="button"
+                      class="btn btn-secondary"
+                      data-bs-dismiss="modal">
+                      No
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-success"
+                      data-bs-dismiss="modal"
+                      hx-get="{{ url_for('delete_scan', scan_id=defect.id) }}"
+                      hx-target="#scan_body_container"
+                      hx-swap="outerHTML">
+                      Yes
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </td>
           <td>{{ defect.scan_number}}</td>
@@ -82,10 +120,8 @@
             <ul class="text-start">
               {% for defects_detected in defect.defectsDetected %}
               <li>
-                {% if defects_detected == "none" %}
-                No defects detected
-                {% else %}
-                {{defects_detected}}
+                {% if defects_detected == "none" %} No defects detected {% else
+                %} {{defects_detected}}
                 <span>{{defect.defectsDetected[defects_detected]}}</span>
                 {% endif %}
               </li>
@@ -93,8 +129,13 @@
             </ul>
           </td>
           <td>{{ batch.farm }}</td>
-          <td><a target="_blank" href="{{ url_for('static', filename='final_detected_images/' + defect.scanned_image) }}">View Image</a></td>
-
+          <td>
+            <a
+              target="_blank"
+              href="{{ url_for('static', filename='final_detected_images/' + defect.scanned_image) }}"
+              >View Image</a
+            >
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -104,13 +145,9 @@
 
 
 
- 
-
 <script
   src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
   integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
   crossorigin="anonymous"></script>
-<script>
-  
-</script>
+<script></script>
 {% endblock content %}

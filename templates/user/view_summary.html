@@ -32,25 +32,23 @@
       class="text-decoration-none">
       <button class="btn btn-success mb-3">View Scans</button>
     </a>
-    <a href="" class="text-decoration-none">
-      <button class="btn btn-success mb-3">Detailed Summary</button>
-    </a>
   </div>
   <div class="overflow-auto">
-    <h1>Overall</h1>
     <table class="table flex-wrap text-wrap table-summary text-center">
       <h2>Summary - Category 1 Defects</h2>
       <thead>
         <tr>
           <th scope="col">Defects Name</th>
           <th scope="col">Count</th>
+          <th scope="col">Full Defect Count</th>
         </tr>
       </thead>
       <tbody style="border-top: 0" id="scan_body_container">
         {% for defect in objects['primary_defects_list'] %}
         <tr>
           <td scope="row">{{ defect }}</td>
-          <td>{{ objects["primary_defects_list"][defect] }}</td>
+          <td>{{ objects["primary_defects_list"][defect][0] }}</td>
+          <td>{{ objects["primary_defects_list"][defect][1] }}</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -62,13 +60,15 @@
         <tr>
           <th scope="col">Defects Name</th>
           <th scope="col">Count</th>
+          <th scope="col">Full Defect Count</th>
         </tr>
       </thead>
       <tbody style="border-top: 0" id="scan_body_container">
         {% for defect in objects['defects_list_sum'] %}
         <tr>
           <td scope="row">{{ defect }}</td>
-          <td>{{ objects["defects_list_sum"][defect] }}</td>
+          <td>{{ objects["defects_list_sum"][defect][0] }}</td>
+          <td>{{ objects["defects_list_sum"][defect][1] }}</td>
         </tr>
         {% endfor %}
       </tbody>
