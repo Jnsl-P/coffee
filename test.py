@@ -20,7 +20,12 @@
 # else:
 #     print("No")
 
-a = {"partial black": 3}
-a["partial black"] = a["partial black"], 1
 
-print(a["partial black"][1])
+from datetime import datetime
+import pytz
+
+local_timezone = pytz.timezone('Asia/Manila')  # Replace with your local timezone, e.g., 'America/New_York'
+
+def get_local_time():
+    return datetime.now(local_timezone)
+print(get_local_time().strftime('%Y-%m-%d %H:%M:%S'))

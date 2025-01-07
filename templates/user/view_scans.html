@@ -12,7 +12,7 @@
     class="border border-5 rounded-circle position-relative"
     alt="..."
     style="height: 100px" />#}
-  <h3>{{ current_user.fname }}</h3>
+  <h3>Scans</h3>
 </div>
 
 <div
@@ -31,14 +31,14 @@
       <button class="btn btn-success mb-3">Back to Dashboard</button>
     </a>
     <a
-      href="{{ url_for('batch_scan_page', id=batch.batch_id,title=batch.title) }}"
-      class="text-decoration-none">
-      <button class="btn btn-success mb-3">Add Scan</button>
-    </a>
-    <a
       href="{{ url_for('view_summary', id=batch.batch_id, title=batch.title) }}"
       class="text-decoration-none">
       <button class="btn btn-success mb-3">View Summary</button>
+    </a>
+    <a
+      href="{{ url_for('batch_scan_page', id=batch.batch_id,title=batch.title) }}"
+      class="text-decoration-none">
+      <button class="btn btn-success mb-3">Add Scan</button>
     </a>
   </div>
 
@@ -142,12 +142,4 @@
     </table>
   </div>
 </div>
-
-
-
-<script
-  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-  crossorigin="anonymous"></script>
-<script></script>
 {% endblock content %}

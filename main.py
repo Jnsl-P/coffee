@@ -26,6 +26,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from flask import Flask, render_template, redirect, url_for
 from sqlalchemy import desc
 import base64
+import pytz
 
 
 # Path to the shared file for detected objects
@@ -38,6 +39,7 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = (
     "sqlite:///ums.sqlite"  # Adjust your database URI
 )
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SECRET_KEY"] = "65b0b774279de460f1cc5c92"
 app.config["SESSION_PERMANENT"] = False
@@ -55,8 +57,16 @@ login_manager.login_view = 'userIndex'
 process = None  # Global variable to manage the scanning subprocess
 final_detected_objects = []  # Store the results of object detection
 
+# object detection class
 camera_obj = None
 
+# get local time
+local_timezone = pytz.timezone('Asia/Manila')
+def get_local_time():
+    return datetime.now(local_timezone)
+
+
+# db tables
 # User Class
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -73,6 +83,11 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return f'User("{self.id}", "{self.fname}", "{self.lname}", "{self.email}", "{self.edu}", "{self.username}", "{self.status}")'
+
+@app.context_processor
+def inject_builtins():
+    # Inject the Python built-in max and min functions into the Jinja2 environment
+    return dict(max=max, min=min)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -93,7 +108,7 @@ class Admin(UserMixin, db.Model):
 class BatchSession(db.Model):
     batch_id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
-    date_created = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_created = db.Column(db.DateTime, nullable=False, default=get_local_time())
     bean_type = db.Column(db.String(255), nullable=False)
     farm = db.Column(db.String(255), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Foreign key referencing user.id
@@ -107,7 +122,7 @@ class BatchSession(db.Model):
 class DefectsDetected(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     scan_number = db.Column(db.Integer, nullable=False)
-    date_scanned = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date_scanned = db.Column(db.DateTime, nullable=False, default=get_local_time())
     defectsDetected = db.Column(db.JSON, nullable=False)
     scanned_image = db.Column(db.String(255), nullable=False)
     batch_id = db.Column(db.Integer, db.ForeignKey('batch_session.batch_id'), nullable=False)  # Foreign key
@@ -120,7 +135,7 @@ class DefectsDetected(db.Model):
         return f'DefectsDetected("{self.id}", "{self.batch_id}")'
     
 
-
+# insert dummy data
 # with app.app_context():
 #     # DefectsDetected.query.filter(id!=1).delete()
 #     # db.session.commit()
@@ -136,16 +151,17 @@ class DefectsDetected(db.Model):
 #     db.session.commit()
 
 
+
 # =====truncate table=====
 # def clear_table(model):
 #     with app.app_context():
 #         db.session.query(model).delete()
 #         db.session.commit()
         
-# clear_table(User)  # Replace with your model class
+# # clear_table(User)  # Replace with your model class
 # clear_table(DefectsDetected)  # Replace with your model class
 # clear_table(BatchSession)  # Replace with your model class
-    
+
 # =====truncate table end=====
 
         
@@ -351,6 +367,7 @@ def scan_page():
    
     return render_template("user/scan.html")
 
+
 @app.route("/scan/<int:id>/<string:title>", methods=["GET", "POST"])
 @login_required
 def batch_scan_page(id, title):
@@ -522,18 +539,44 @@ def upload_image():
 
 
 # User dashboard
-@app.route("/user/dashboard")
+@app.route("/user/dashboard", methods=["GET", "POST"])
 @login_required
 def userDashboard():
     # if not session.get("user_id"):
     #     return redirect("/user/")
     
     # user_id = session.get("user_id")
-
+    page = request.args.get('page', 1, type=int)
     user_id = current_user.id
-    user_batch_sessions = BatchSession.query.filter(BatchSession.user_id==user_id).order_by(BatchSession.batch_id.desc()).all()
+    if request.args.get("search"):
+        if request.args.get("search") == "":
+            query=""
+            user_batch_sessions = BatchSession.query.filter(BatchSession.user_id==user_id).order_by(BatchSession.batch_id.desc())
+            return render_template("user/dashboard.html", objects=user_batch_sessions, query=query)
+        
+        query=request.args.get("search")
+        user_batch_sessions = BatchSession.query.filter(BatchSession.title.like("%" + query + "%")).order_by(BatchSession.batch_id.desc())
+        user_batch_sessions = db.paginate(user_batch_sessions,page=page, per_page=5)
+        return render_template("user/dashboard.html", objects=user_batch_sessions, query=query)    
+    else:
+        query=""
+        user_batch_sessions = BatchSession.query.filter(BatchSession.user_id==user_id).order_by(BatchSession.batch_id.desc())
     
-    return render_template("user/dashboard.html", objects=user_batch_sessions)
+    user_batch_sessions = db.paginate(user_batch_sessions,page=page, per_page=5)
+    
+    return render_template("user/dashboard.html", objects=user_batch_sessions, query=query)
+
+
+# User dashboard search title
+@app.route("/user/dashboard/search", methods=["GET", "POST"])
+@login_required
+def userDashboardSearch():   
+    page = request.args.get('page', 1, type=int)
+    user_id = current_user.id
+    q = request.args.get("search")
+    user_batch_sessions = BatchSession.query.filter(BatchSession.user_id==user_id).filter(BatchSession.title.like("%" + q + "%")).order_by(BatchSession.batch_id.desc())
+    user_batch_sessions = db.paginate(user_batch_sessions, page=page, per_page=5)
+    return render_template("user/partials/dashboard_search.html", objects=user_batch_sessions)
 
 @app.route("/user/dashboard/view/<int:id>/<string:title>")
 @login_required
@@ -594,8 +637,10 @@ def view_summary(id, title):
     # equivalent full defect values
     full_defects_count = 0
     for key in defects_list_sum:    
-        divide = defects_list_sum[key] // equivalent_values[key]
-        defects_list_sum[key] = defects_list_sum[key], divide
+        # error with none value
+        if key in equivalent_values:
+            divide = defects_list_sum[key] // equivalent_values[key]
+            defects_list_sum[key] = defects_list_sum[key], divide
     
     
     # separate primary defects
@@ -618,18 +663,6 @@ def view_summary(id, title):
     
     return render_template("user/view_summary.html", objects=objects)
     
-# def view_summary_overall(id):
-#     batch_id = id
-#     primary_defects_name = [
-#         {"partial black":"full black"},
-#         {"partial sour","full sour"},
-#         {"dried cherry"},   
-#         {:"fungus"},
-#         {:"foreign matter"},
-#         {:"Severe Insect Damage"}
-#         ]
-    
-#     print()
 
 @app.route("/delete-batch/<int:batch_id>")
 def delete_batch(batch_id):
@@ -646,8 +679,6 @@ def delete_batch(batch_id):
     db.session.commit()
     
     return redirect(url_for('userDashboard'))
-
-
 
 @app.route("/delete-scan/<int:scan_id>")
 def delete_scan(scan_id):
@@ -678,10 +709,6 @@ def delete_scan(scan_id):
         scan_lists = DefectsDetected.query.filter(DefectsDetected.batch_id == batch.batch_id).order_by(DefectsDetected.scan_number.desc()).all()
         
     return render_template("user/partials/view_scans_update.html", scan_lists=scan_lists, batch=batch)
-
-    
-    # return redirect("url_for('userDashboard')")
-    # return render_template("user/view_scans.html")
 
 # User logout
 @app.route("/user/logout")

@@ -8,3 +8,4 @@ flask-session
 flask-bcrypt
 tensorflow
 Flask
+flask-login

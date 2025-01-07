@@ -1,0 +1,107 @@
+{% for object in objects %}
+  <div class="session-list container-fluid">
+    <div
+      class="row p-3 mb-3 session-batches-container"
+      data-bs-toggle="collapse"
+      href="#collapseExample{{object.batch_id}}"
+      role="button"
+      aria-expanded="false"
+      aria-controls="collapseExample1">
+      <div class="col">{{ object.title }}</div>
+      <div class="col">{{object.date_created.strftime('%B %d, %Y')}}</div>
+      <div class="col">{{ object.date_created.strftime('%H:%M') }}</div>
+      <div class="col">{{ object.bean_type }}</div>
+      <div class="col">{{ object.farm }}</div>
+    </div>
+
+    <div class="collapse" id="collapseExample{{object.batch_id}}">
+      <ul class="list-group gap-2 mb-4">
+        <a
+          class="text-decoration-none"
+          href="/user/dashboard/view/{{ object.batch_id }}/{{ object.title }}"
+          ><li
+            class="list-group-item d-flex justify-content-between btn rounded-3 new-scan-btn">
+            <span> View Scans </span
+            ><span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-caret-right-fill"
+                viewBox="0 0 16 16">
+                <path
+                  d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z" />
+              </svg>
+            </span></li
+        ></a>
+        <a
+          href="{{ url_for('batch_scan_page', id=object.batch_id, title=object.title) }}"
+          class="text-decoration-none"
+          ><li
+            class="list-group-item d-flex justify-content-between btn rounded-3 new-scan-btn">
+            <span> Add New Scan </span
+            ><span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-caret-right-fill"
+                viewBox="0 0 16 16">
+                <path
+                  d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z" />
+              </svg>
+            </span></li
+        ></a>
+        <a
+          href="{{url_for('delete_batch', batch_id=object.batch_id)}}"
+          class="text-decoration-none"
+          ><li
+            class="list-group-item d-flex justify-content-between btn rounded-3 delete-session-btn">
+            <span> Delete Batch Session </span
+            ><span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-caret-right-fill"
+                viewBox="0 0 16 16">
+                <path
+                  d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z" />
+              </svg>
+            </span></li
+        ></a>
+      </ul>
+    </div>
+  </div>
+{% endfor %} 
+
+
+{% if objects.pages > 1 %}
+  <nav aria-label="Page navigation example" >
+    <ul class="pagination pagination-custom ">
+
+      {% if objects.has_prev %}
+      <li class="page-item"><a class="page-link" href="user/dashboard?search={{query}}&page=1" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a></li>
+      <li class="page-item"><a class="page-link" href="user/dashboard?search={{query}}&{{objects.prev_num}}">Previous</a></li>
+      {% endif %}
+
+      {% for page_num in range(max(1, objects.page - 2), min(objects.pages + 1, objects.page + 3)) %}
+        {% if page_num == objects.page %}
+        <li class="page-item active"><a class="page-link current-page" href="{{ url_for('userDashboard',search=objects.query, page=page_num) }}">{{ page_num }}</a></li>
+        {% else %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('userDashboard', search=objects.query, page=page_num) }}">{{ page_num }}</a></li>
+        {% endif %}
+      {% endfor %}
+
+      {% if objects.has_next %}
+      <li class="page-item"><a class="page-link" href="{{ url_for('userDashboard',search=query, page=objects.next_num) }}">Next</a></li>
+      <li class="page-item"><a class="page-link" href="{{ url_for('userDashboard',search=query, page=objects.pages) }}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a></li>
+      {% endif %}
+  
+    </ul>
+  </nav>
+{% endif %}
+</div>

@@ -4,6 +4,10 @@
   --main-green-theme: rgb(75, 99, 75);
 }
 
+/* body{
+  background-color: rgb(209, 209, 209);
+} */
+
 .main-container {
   width: 100%; /* Full width of the parent container */
   height: 100vh; /* Full height of the viewport or adjust as needed */
@@ -183,6 +187,24 @@ table.custom-bordered td:first-child {
 .scrolling{
   overflow-x: auto;
 }
+
+.page-link {
+  color: var(--main-green-theme);
+}
+
+.pagination-custom{
+  font-size: 14px;
+}
+
+.pagination-custom li a:hover{
+  color: var(--main-green-theme);
+}
+
+.current-page {
+  background-color: var(--main-green-theme) !important;
+  border-color: var(--main-green-theme) !important;
+}
+
 
 
 
