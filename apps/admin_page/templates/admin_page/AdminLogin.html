@@ -1,0 +1,47 @@
+{% extends "layout/index_layout.html"%}
+{% block content %}
+<div class="d-flex flex-column align-items-center gap-5">
+  <div class="text-center title">
+    <h3>Coffee Bean</h3>
+    <h3>Defects Detection</h3>
+  </div>
+  <div class="container container-login">
+    <div class="row justify-content-center">
+      <div class="col-12">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-danger">
+              <strong>{{message}}</strong>
+            </div>
+            {% endfor %}
+        {% endif %}
+        <div class="card">
+          <div class="card-body">
+            <h1 class="text-center my-2 mb-4 fs-3">Admin Login</h1>
+            <form method="POST">
+              {% csrf_token %}
+              <div class="my-2">
+                <label for=""><b>Enter Your Username</b></label>
+                <input
+                  type="text"
+                  name="username"
+                  id="email"
+                  class="form-control my-1" required/>
+              </div>
+              <div class="my-2">
+                <label for=""><b>Enter Your Password</b></label>
+                <input
+                  type="password"
+                  name="password"
+                  id="password"
+                  class="form-control my-1" required/>
+              </div>
+              <button type="submit" class="btn btn-success">Login</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

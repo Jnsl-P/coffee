@@ -1,0 +1,39 @@
+{% extends "layout/index_layout.html"%}
+{% block content %}
+<div class="container">
+    <div class="row d-flex justify-content-center">
+        <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12">   
+            {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-danger">
+                <strong>{{message}}</strong>
+            </div>
+            {% endfor %}
+            {% endif %}
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="text-center my-3 mt-0">
+                        User Registration
+                    </h1>
+                    <form class="px-3" method="POST">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="my-3 form-field-container">
+                            {% if field.name == "password2" %}
+                            <label for="{{ field.name }}">Re enter password</label>
+                            {% else %}
+                            {{ field.label_tag }}
+                            {% endif %}
+                            {{ field }}
+                        </div>
+                        {% endfor %}
+                        <br/>
+                        <button class="btn btn-success">Signup</button>
+                        <span class="d-flex align-items-center">Already have an account?<a href="{% url "login" %}"class="text-center nav-link">Login</a></span>
+                    </form>
+                </div>
+            </div>  
+        </div>
+    </div>
+</div>
+{% endblock content %}

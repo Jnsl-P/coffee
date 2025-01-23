@@ -1,0 +1,65 @@
+{% extends "layout.html"%}
+{% block content %}{% if messages %}
+{% for message in messages %}
+<div class="alert alert-success">
+  <strong>{{message}}</strong>
+</div>
+{% endfor %}
+{% endif %}
+<div class="container mt-5">
+    <h2 class="mb-4">User Lists</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">First Name</th>
+                <th scope="col">Last Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a_user in objects %}
+            <tr>
+                <th scope="row">{{ a_user.id }}</th>
+                <td>{{ a_user.first_name }}</td>
+                <td>{{ a_user.last_name }}</td>
+                <td>{{ a_user.email }}</td>
+                <td>
+                    <button class="btn btn-success btn-sm">Edit</button>
+                    <button
+                        class="btn btn-danger btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modal"
+                        hx-get="{% url 'delete_user' a_user.id %}"
+                        hx-target="#swapelement"
+                        hx-swap="innerHTML"
+                        >Delete</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div 
+        class="modal fade"
+        id="modal"
+        tabindex="-1"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+            <div class="modal-header border-0">
+                <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"></button>
+            </div>
+            <div id="swapelement">
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

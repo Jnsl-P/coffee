@@ -1,0 +1,292 @@
+{% extends "layout.html" %}
+{% block head_content %}
+<a href="{% url "dashboard" %}"><button class="btn btn-success">Dashboard</button></a>
+<a
+  href="{% url "view_scans" objects.batch_id objects.title %}"
+  ><button class="btn btn-success">View Scans</button></a
+>
+{% endblock head_content %}
+{% block content %}
+<br />
+<div class="row gap-3 mx-4 mx-md-0  scan-container">
+  <div class="col-sm-12 col-lg-8 camera-container p-0 d-flex justify-content-center align-items-center" id="camContainer">
+    <div id="camLogoContainer" class="">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="48px"
+          viewBox="0 -960 960 960"
+          width="48px"
+          fill="#b6b6b6">
+          <path d="M479.5-267q72.5 0 121.5-49t49-121.5q0-72.5-49-121T479.5-607q-72.5 0-121 48.5t-48.5 121q0 72.5 48.5 121.5t121 49Zm0-60q-47.5 0-78.5-31.5t-31-79q0-47.5 31-78.5t78.5-31q47.5 0 79 31t31.5 78.5q0 47.5-31.5 79t-79 31.5ZM140-120q-24 0-42-18t-18-42v-513q0-23 18-41.5t42-18.5h147l73-87h240l73 87h147q23 0 41.5 18.5T880-693v513q0 24-18.5 42T820-120H140Zm0-60h680v-513H645l-73-87H388l-73 87H140v513Zm340-257Z" />
+        </svg>
+    </div>
+
+    <img src="" id="scannedImage" alt="Camera Feed Placeholder" style="width: 100%; height: auto; border-radius: 10px" class="d-none" />
+
+    <div class="spinner-border d-none spinnerLoading" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+
+  </div>
+
+  <div class="col result-container d-flex flex-row ">
+    <div
+      class="container py-4 px-2 d-flex flex-column justify-content-start position-relative">
+      <form
+        method="POST"
+        class="pt-2 d-flex flex-column align-items-center form-scan overflow-auto scrolling"
+        style="height: 100%">
+        {% csrf_token %}
+        <h1 class="result-title fw-bold">{{ objects.title }}</h1>
+        <br />
+        <h2 class="result-title fw-bold fs-4 text-wrap">
+          Scan no.: {{ scan_number.scan_number|add:"1" }}
+        </h2>
+        <h1 class="result-title">Results / Outcomes</h1>
+
+        <div>
+          <label for="" class="form-label">Farm:</label>
+          <input type="text" class="form-control fw-bold"
+          value="{{objects.farm.upper }}" reado nly />
+        </div>
+
+        <br />
+
+        <div>
+          <label for="" class="form-label">Bean type:</label>
+          <input type="text" class="form-control fw-bold"
+          value="{{objects.bean_type.upper }}" readonly />
+        </div>
+
+        <br />
+
+        <div>
+          <label for="" class="form-label">Defects:</label>
+          <br />
+          
+          {% comment %} <label for="confidence_input" class="form-label"
+            >confidence threshold: <span id="confidence_display"></span
+          ></label>
+          <div class="d-flex justify-content-between gap-4">
+            <span class="text-white">0</span>
+            <input
+              type="range"
+              class="form-range"
+              min="0"
+              max="100"
+              id="confidence_input"
+              name="confidence_input"
+              value="50"/>
+            <span class="text-white">100</span>
+          </div> {% endcomment %}
+
+          <ul class="list-group" id="defects_list"></ul>
+        </div>
+
+
+        <div id="start-camera-btn" class="my-3 my-2 p-3 py-2 px-5 btn btn-light rounded-pill text-center">
+          Start Camera
+        </div>
+        <div class="row gap-lg-2 gap-sm-1 flex-wrap-reverse align-items-center" id="stopAndCaptureBtn">
+          <a href="{% url "scan" objects.batch_id objects.title %}" class="px-1">
+            <div
+              class="my-3 my-2 p-3 py-2 px-5 btn btn-danger rounded-pill d-none"
+              id="cancelStopBtn">
+              Cancel/Stop
+            </div>
+          </a>
+
+          <div class="p-1 d-none" style="width: 100%" id="submitResultsBtn">
+            <input
+            style="width: 100%"
+            type="submit"
+            class="btn btn-secondary rounded-pill my-2 p-3 py-2 px-5"
+            value="Submit Scan" />
+          </div>
+          <div class="p-1">
+            <div
+              class="my-3 my-2 p-3 py-2 btn btn-secondary rounded-pill d-none"
+              id="takePhotoBtn">
+              Take Photo
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                height="24px"
+                viewBox="0 -960 960 960"
+                width="24px"
+                fill="#e8eaed">
+                <path
+                  d="M480-260q75 0 127.5-52.5T660-440q0-75-52.5-127.5T480-620q-75 0-127.5 52.5T300-440q0 75 52.5 127.5T480-260Zm0-80q-42 0-71-29t-29-71q0-42 29-71t71-29q42 0 71 29t29 71q0 42-29 71t-71 29ZM160-120q-33 0-56.5-23.5T80-200v-480q0-33 23.5-56.5T160-760h126l74-80h240l74 80h126q33 0 56.5 23.5T880-680v480q0 33-23.5 56.5T800-120H160Zm0-80h640v-480H638l-73-80H395l-73 80H160v480Zm320-240Z" />
+              </svg>
+            </div>
+          </div>
+            
+        </div>
+      </form>
+    </div>
+  </div>
+</div> 
+{% endblock content %}
+{% block script_content %}
+<script>
+  let start_camera_button = $("#start-camera-btn");
+  let stopAndCaptureBtn = $("#stopAndCaptureBtn");
+  let takePhotoBtn = $("#takePhotoBtn");
+  let cancelStopBtn = $("#cancelStopBtn");
+  let submitResultsBtn = $("#submitResultsBtn");
+  let camLogoContainer = $("#camLogoContainer");
+  let spinnerLoading = $(".spinnerLoading");
+  let scannedImage = $("#scannedImage");
+  let show_defects_btn = $("#show_defects_btn");
+  let camContainer = $("#camContainer");
+  let scan_container = $(".scan-container");
+  let result_container = $(".result-container");
+
+  let confidence_input = $("#confidence_input");
+  let confidence_display = $("#confidence_display");
+
+  // initialize camera
+  start_camera_button.click(function (e) {
+    camLogoContainer.addClass("d-none");
+    spinnerLoading.removeClass("d-none");
+    start_camera_button.addClass("d-none");
+    cancelStopBtn.removeClass("d-none");
+
+    try {
+      scannedImage.attr("src", `{% url "video_feed" %}`); 
+      scannedImage.on("load", function () {
+        takePhotoBtn.removeClass("d-none");
+        scannedImage.removeClass("d-none");
+        spinnerLoading.addClass("d-none");
+        camContainer.addClass("border-0");
+        scan_container.addClass("align-items-start");
+        // result_container.height(scannedImage.height());
+      });
+    } catch (e) {
+      alert(e);
+    }
+  });
+
+  // stop camera capture
+  {% comment %} cancelStopBtn.click(function (e) {
+    scannedImage.attr("src", "");
+    scannedImage.addClass("d-none");
+
+    stopAndCaptureBtn.addClass("d-none")
+    spinnerLoading.addClass("d-none");
+    camLogoContainer.removeClass("d-none");
+    camContainer.removeClass("border-0");
+    
+    start_camera_button.removeClass("d-none");
+  }); {% endcomment %}
+
+
+  {% comment %} async function captureEnd() {
+    takePhotoBtn.addClass("d-none")
+    spinnerLoading.removeClass("d-none");
+    scannedImage.attr("src", "");
+    scannedImage.addClass("d-none");
+    camContainer.removeClass("border-0");
+
+    try {
+      let response = await fetch("{% url 'stop_object_py' %}");
+      let data = await response.json();
+      if (data.success) {
+        scannedImage.attr("src",
+        `data:image/jpeg;base64, ${data.captured_frame}`)
+
+      }
+      scannedImage.on("load", function () { 
+        takePhotoBtn.addClass("d-none")
+        submitResultsBtn.removeClass("d-none");
+        cancelStopBtn.removeClass("d-none");
+        spinnerLoading.addClass("d-none");
+        scannedImage.removeClass("d-none");
+        fetch("{% url 'get_defects' %}")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.success) {
+              $("#defects_list").html(data.html);
+            }
+          });
+      });
+    }
+    catch (error) {
+      console.error("Error stopping scan:", error);
+      alert(
+        "Error occurred while stopping the scan. Please check server logs."
+      );
+    }
+  } {% endcomment %}
+
+
+  async function captureEnd() {
+    takePhotoBtn.addClass("d-none")
+
+    scan_container.removeClass("align-items-start");
+    spinnerLoading.removeClass("d-none");
+    scannedImage.attr("src", "");
+    scannedImage.addClass("d-none");
+    camContainer.removeClass("border-0");
+
+    try {
+      let response = await fetch("{% url 'stop_object_py' %}");
+      let data = await response.json();
+      if (data.success) {
+        scannedImage.attr("src",
+        `data:image/jpeg;base64, ${data.captured_frame}`)
+
+      }
+      scannedImage.on("load", function () { 
+        takePhotoBtn.addClass("d-none")
+        submitResultsBtn.removeClass("d-none");
+        spinnerLoading.addClass("d-none");
+        scannedImage.removeClass("d-none");
+        scan_container.addClass("align-items-start");
+        fetch("{% url 'get_defects' %}")
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            if (data.success) {
+              $("#defects_list").html(data.html);
+            }
+          });
+      });
+    }
+    catch (error) {
+      console.error("Error stopping scan:", error);
+      alert(
+        "Error occurred while stopping the scan. Please check server logs."
+      );
+    }
+  }
+
+  takePhotoBtn.click(captureEnd);
+
+  {% comment %} async function update_confi dence(e){
+    let response = await fetch(`/update_annotated_object/${confidence_input.val()}`)
+    let data = await response.json();
+    if (data.success) {
+      scannedImage.attr("src", `data:image/jpeg;base64,${data.captured_frame}`)
+      console.log("HELLO")
+    }
+  }
+
+  {% endcomment %}
+  confidence_input.on("input", function (e) {
+    confidence_display.text(e.target.value + "%");
+  });
+  confidence_input.on("change", function (e) {
+    // update_confidence();
+  });
+</script>
+{% endblock script_content %}
+

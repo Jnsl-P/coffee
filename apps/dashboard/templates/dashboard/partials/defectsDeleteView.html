@@ -1,0 +1,19 @@
+<form method="post" action="{% url "delete_view_scans" scan_number.id %}">
+  {% csrf_token %}
+  <div class="modal-body text-center text-wrap">
+    <h5>Are you sure you want to delete scan number:"&nbsp;<span class="fw-bold">{{ scan_number.scan_number }}</span>"?</h5>
+  </div>
+  <div class="modal-footer border-0">
+    <button
+      type="button"
+      class="btn btn-secondary"
+      data-bs-dismiss="modal">
+      No
+    </button>
+    <button
+      type="submit"
+      class="btn btn-success"
+      data-bs-dismiss="modal">
+    Yes
+    </button>
+</form>

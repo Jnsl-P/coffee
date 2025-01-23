@@ -1,0 +1,71 @@
+{% extends "layout.html" %} {% block head_content %}
+<div class="d-inline-flex align-items-end gap-3">
+  <h3>Summary</h3>
+</div>
+
+<div
+  class="my-3"
+  style="
+    width: 100%;
+    height: 3px;
+    background-color: black;
+    border-radius: 20px;
+  "></div>
+{% endblock head_content %} {% block content %}
+
+<div class="container-fluid m-0 p-0">
+  <div class="">
+    <a
+      href="{% url 'view_scans' batch_id batch_title %}"
+      class="text-decoration-none">
+      <button class="btn btn-success mb-3">View Scans</button>
+    </a>
+  </div>
+  <div class="overflow-auto">
+    <table class="table flex-wrap text-wrap table-summary text-center">
+      <h2>Summary - Category 1 Defects</h2>
+      <thead>
+        <tr>
+          <th scope="col">Defects Name</th>
+          <th scope="col">Count</th>
+          <th scope="col">Full Defect Count</th>
+        </tr>
+      </thead>
+      <tbody style="border-top: 0" id="scan_body_container">
+        {% if primary_defects_list %}
+          {% for defect, value in primary_defects_list.items %}
+          <tr>
+            <td scope="row">{{ defect }}</td>
+            <td>{{ value.0 }}</td>
+            <td>{{ value.1 }}</td>
+          </tr>
+          {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+
+    <table class="table flex-wrap text-wrap table-summary text-center">
+      <h2>Summary - Category 2 Defects</h2>
+      <thead>
+        <tr>
+          <th scope="col">Defects Name</th>
+          <th scope="col">Count</th>
+          <th scope="col">Full Defect Count</th>
+        </tr>
+      </thead>
+      <tbody style="border-top: 0" id="scan_body_container">
+        {% for defect, value in defects_list_sum.items %}
+        {% if defect != "none" %}
+        <tr>
+          <td scope="row">{{ defect }}</td>
+          <td>{{ value.0 }}</td>
+          <td>{{ value.1 }}</td>
+        </tr>
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock content %}

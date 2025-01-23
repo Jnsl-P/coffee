@@ -1,0 +1,22 @@
+{% if defects %} 
+    {% for key, value in defects.items %}
+    <li class="list-group-item d-flex justify-content-between align-items-center result-list">
+      <input type="text" name="defect" value="{{ key }}" />
+      {{ key }}
+      <span class="badge bg-dark text-white rounded-pill">
+        {{ value }}
+        <input type="text" name="defects_count" value="{{ value }}" />
+      </span>
+    </li>
+    {% endfor %} 
+{% else %}
+{{ form.as_p }}
+<li class="list-group-item d-flex justify-content-between align-items-center">
+  <input
+    type="text"
+    name="defect"
+    value="No Defects Detected!"
+    class="d-none" />
+  <span class="text-danger">No defects Detected!</span>
+</li>
+{% endif %}
