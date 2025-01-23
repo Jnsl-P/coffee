@@ -1,0 +1,10 @@
+opencv-python
+numpy
+cvlib
+gTTS
+playsound
+flask_sqlalchemy
+flask-session  
+flask-bcrypt
+tensorflow
+Flask
