@@ -1,0 +1,8 @@
+opencv-python
+numpy
+cvlib
+tensorflow
+ultralytics
+django-widget-tweaks
+django-htmx
+Django
