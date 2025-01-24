@@ -205,22 +205,23 @@ class SummaryView(LoginRequiredMixin, TemplateView):
             "severe insect Damage"]
         
         equivalent_values = {
-            "full black":1
-            ,"full sour":1
-            ,"dried cherry":1
-            ,"fungus":1
-            ,"foreign matter":1
-            ,"severe insect Damage":5
-            ,"partial black":3
-            ,"partial sour":3
-            ,"parchment":5
-            ,"floater":5
-            ,"immature":5
-            ,"withered":5
-            ,"shell":5
-            ,"broken":5
-            ,"husk":5,
-            "slight insect damage":10}
+            "full black":[1, "1:1"]
+            ,"full sour":[1, "1:1"]
+            ,"dried cherry":[1, "1:1"]
+            ,"fungus":[1, "1:1"]
+            ,"foreign matter":[1, "1:1"]
+            ,"severe insect Damage":[5, "5:1"]
+            ,"partial black":[3, "3:1"]
+            ,"partial sour":[3, "3:1"]
+            ,"parchment":[5, "5:1"]
+            ,"floater":[5, "5:1"]
+            ,"immature":[5, "5:1"]
+            ,"withered":[5, "5:1"]
+            ,"shell":[5, "5:1"]
+            ,"broken":[5, "5:1"]
+            ,"husk":[5, "5:1"]
+            ,"slight insect damage":[10, "10:1"]
+            }
         
         defects_list_sum = {}
         
@@ -228,20 +229,17 @@ class SummaryView(LoginRequiredMixin, TemplateView):
             for defects in all_defects:
                 defects_detected = defects.defects_detected
                 for key, value in defects_detected.items():
-                    if key in defects_list_sum:
+                    if key in defects_list_sum: 
                         defects_list_sum[key] += value
-                        
                     else:
                         # divide = defects_list_sum[key] // equivalent_values[key]
                         defects_list_sum[key] = value
                         
         # equivalent full defect values
-        full_defects_count = 0
         for key in defects_list_sum:    
-            # error with none value
             if key in equivalent_values:
-                divide = defects_list_sum[key] // equivalent_values[key]
-                defects_list_sum[key] = defects_list_sum[key], divide
+                divide = defects_list_sum[key] // equivalent_values[key][0]
+                defects_list_sum[key] = defects_list_sum[key], divide, equivalent_values[key][1]
         
         # separate primary defects
         primary_defects_list = {}

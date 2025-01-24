@@ -27,15 +27,15 @@
       <thead>
         <tr>
           <th scope="col">Defects Name</th>
-          <th scope="col">Count</th>
-          <th scope="col">Full Defect Count</th>
+          <th scope="col">Defect Count</th>
+          <th scope="col">Full Defects</th>
         </tr>
       </thead>
       <tbody style="border-top: 0" id="scan_body_container">
         {% if primary_defects_list %}
           {% for defect, value in primary_defects_list.items %}
           <tr>
-            <td scope="row">{{ defect }}</td>
+            <td scope="row">{{ defect }} ({{ value.2 }})</td>
             <td>{{ value.0 }}</td>
             <td>{{ value.1 }}</td>
           </tr>
@@ -57,7 +57,7 @@
         {% for defect, value in defects_list_sum.items %}
         {% if defect != "none" %}
         <tr>
-          <td scope="row">{{ defect }}</td>
+          <td scope="row">{{ defect }} ({{value.2}})</td>
           <td>{{ value.0 }}</td>
           <td>{{ value.1 }}</td>
         </tr>
