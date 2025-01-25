@@ -19,7 +19,7 @@ class loginView(FormView):
         user = form.user  # Retrieve the authenticated user
         if user.username != "admin" and user.password != "admin":    
             login(self.request, user)  # Log in the user
-            messages.add_message(self.request, messages.INFO, "Login Successful")
+            messages.add_message(self.request, messages.INFO, "Logged in as {}".format(user.username))
         else:
             messages.add_message(self.request, messages.WARNING, "Invalid credentials")
         return super().form_valid(form)

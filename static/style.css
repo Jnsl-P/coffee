@@ -148,10 +148,7 @@ table.custom-bordered td:first-child {
   color: black;
 }
 
-.delete-session-btn:hover{
-  background-color: rgba(255, 0, 0, 0.199);
-  color: white;
-}
+
 
 .new-scan-btn:hover{
   background-color: rgba(0, 0, 0, 0.842);
