@@ -11,6 +11,7 @@ urlpatterns = [
     path('dashboard/', views.DashboardListView.as_view(), name="dashboard"),
     path('dashboard/add_session/', views.AddSession.as_view(), name="add_session"),
     path('scan/delete/<pk>', views.DeleteSessionView.as_view(), name="delete_session"),
+    # path('dashboard/filter_type', views.filter_type, name="filter_type"),
     
     # Scan List
     path('dashboard/view/<int:batch_id>/<str:title>/', views.ScanListView.as_view(), name="view_scans"),

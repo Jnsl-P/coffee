@@ -11,8 +11,9 @@ os.makedirs(screenshot_dir, exist_ok=True)  # Ensure the directory exists
 screenshot_path = os.path.join(screenshot_dir, "latest_screenshot.jpg")
 
 class ObjectDetection:
+    global screenshot_dir,screenshot_path, model
+    
     def __init__(self, video):
-        global screenshot_dir,screenshot_path, model
         self.defects = {}
         self.video = video
         self.thread = threading.Thread(target=self.capture,daemon=True)
@@ -46,18 +47,19 @@ class ObjectDetection:
 
     def start_detects(self, confidence_threshold=0.2):
         try:
+            # uncomment the following lines to test with an image file
             # ==================== test image ====================
-            # uncomment the following lines to test with an image
             
-            # image = "422c69cd-4043-471f-9708-9f164b391172.jpg"
-            # imagepath = "apps/dashboard/object_detection/" + image
-            # self.frame = cv2.imread(imagepath, cv2.IMREAD_COLOR)
+            image = "422c69cd-4043-471f-9708-9f164b391172.jpg"
+            imagepath = "apps/dashboard/object_detection/" + image
+            self.frame = cv2.imread(imagepath, cv2.IMREAD_COLOR)
             
             # ==================== test image ====================
 
+
             # ==================== YOLO Model Inference ====================
             self.results = model(self.frame)
-            annotated_frame = self.frame.copy()
+            # annotated_frame = self.frame.copy()
 
             detections = self.results[0]  # First result corresponds to the current frame/image
 
@@ -91,16 +93,16 @@ class ObjectDetection:
                     confidence = confidences[i]
 
                     # Draw the bounding box
-                    cv2.rectangle(annotated_frame, (x, y), (x + w, y + h), (0, 0, 0), 2)
+                    cv2.rectangle(self.frame, (x, y), (x + w, y + h), (0, 0, 0), 2)
 
                     # Label the box
                     label_text = f"{label}: {confidence:.2f}"
-                    cv2.putText(annotated_frame, label_text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 2)
+                    cv2.putText(self.frame, label_text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 2)
                     
                     # Update defects dictionary
                     self.defects[label] = self.defects.get(label, 0) + 1
                     
-            return annotated_frame
+            return self.frame
         except Exception as err:
             print(err)
         

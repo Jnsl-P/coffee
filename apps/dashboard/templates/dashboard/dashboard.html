@@ -22,7 +22,7 @@
     background-color: black;
     border-radius: 20px;
   "></div>
-{% endblock head_content %} 
+{% endblock head_content %}
 
 {% block content %}
 <div class="d-flex justify-content-between mb-2">
@@ -34,54 +34,31 @@
     aria-controls="offcanvasWithBothOptions">
     Filter
   </button>
-
-  <div
-    class="offcanvas offcanvas-start visible"
-    data-bs-scroll="true"
-    tabindex="-1"
-    id="filter-offcanvas"
-    aria-labelledby="offcanvasWithBothOptionsLabel">
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title" id="offcanvasWithBothOptionsLabel">
-        Backdrop with scrolling
-      </h5>
-      <button
-        type="button"
-        class="btn-close"
-        data-bs-dismiss="offcanvas"
-        aria-label="Close"></button>
-    </div>
-    <div class="offcanvas-body">
-      <p>Try scrolling the rest of the page to see this option in action.</p>
-    </div>
-  </div>
-
   <a href="{% url "dashboard" %}">
     <button class="btn btn-success">Dashboard</button>
   </a>
 
   <div>
-    <form method="GET">
-      <div class="d-flex">
-        <input
-          type="text"
-          name="search"
-          class="form-control"
-          placeholder="Search Title" />
-        <button class="input-group-text btn" id="basic-addon2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            fill="currentColor"
-            class="bi bi-search"
-            viewBox="0 0 16 16">
-            <path
-              d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
-          </svg>
-        </button>
-      </div>
-    </form>
+    <div class="d-flex">
+      <input
+        id="search"
+        type="text"
+        name="search"
+        class="form-control"
+        placeholder="Search Title" />
+      <button class="input-group-text btn" id="basic-addon2">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          fill="currentColor"
+          class="bi bi-search"
+          viewBox="0 0 16 16">
+          <path
+            d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0" />
+        </svg>
+      </button>
+    </div>
   </div>
 
   <a href="{% url "add_session" %}" style="text-decoration:none">
@@ -120,18 +97,18 @@
         <div
           class="row p-3 mb-3 session-batches-container"
           data-bs-toggle="collapse"
-          href="#collapseExample{{object.batch_id}}"
+          href="#collapseExample{{ object.batch_id }}"
           role="button"
           aria-expanded="false"
           aria-controls="collapseExample1">
           <div class="col">{{ object.title }}</div>
-          <div class="col">{{object.date_created|date:"F d, Y" }}</div>
+          <div class="col">{{ object.date_created|date:"F d, Y" }}</div>
           <div class="col">{{ object.date_created|date:"h:i A" }}</div>
           <div class="col">{{ object.bean_type }}</div>
           <div class="col">{{ object.farm }}</div>
         </div>
   
-        <div class="collapse" id="collapseExample{{object.batch_id}}">
+        <div class="collapse" id="collapseExample{{ object.batch_id }}">
           <ul class="list-group gap-2 mb-4">
             <a href="{% url "scan" object.batch_id object.title%}"
               class="text-decoration-none">
@@ -149,12 +126,13 @@
                     <path
                       d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z" />
                   </svg>
-                </span></li
-            ></a>
-            <a
-              class="text-decoration-none"
-              href="{% url 'view_scans' object.batch_id object.title %}"
-              ><li
+                </span>
+              </li>
+            </a>
+
+            {% comment %} batch nav links {% endcomment %}
+            <a class="text-decoration-none" href="{% url 'view_scans' object.batch_id object.title %}">
+              <li
                 class="list-group-item d-flex justify-content-between btn rounded-3 new-scan-btn">
                 <span> View Scans </span
                 ><span>
@@ -168,15 +146,17 @@
                     <path
                       d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z" />
                   </svg>
-                </span></li
-            ></a>
+                </span>
+              </li>
+            </a>
             
             <li class="list-group-item d-flex justify-content-between btn rounded-3 delete-session-btn" 
-            data-bs-toggle="modal" 
-            data-bs-target="#exampleModal"
-            hx-get="{% url "delete_session" object.batch_id%}"
-            hx-swap="innerHTML"
-            hx-target="#swapelement">
+                data-bs-toggle="modal" 
+                data-bs-target="#exampleModal"
+                hx-get="{% url "delete_session" object.batch_id%}"
+                hx-swap="innerHTML"
+                hx-target="#swapelement"
+                hx-trigger="click">
               <span> Delete Batch Session </span><span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -190,80 +170,257 @@
                 </svg>
               </span>
             </li>
+
           </ul>
         </div>
       </div>
       {% endfor %}
-      
-      <div
-        class="modal fade"
-        id="exampleModal"
-        tabindex="-1"
-        aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header border-0">
-              <button
-                type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"
-                aria-label="Close"></button>
-            </div>
-            <div id="swapelement">
-            </div>
-          </div>
-        </div>
-      </div>
-      
     </div> 
     
     {% if page_obj.paginator.num_pages > 1%}
-    {% if page_obj.has_next or page_obj.has_previous %}
-    <nav aria-label="Page navigation " class="d-flex justify-content-center align-items-center">
-      <ul class="pagination pagination-custom mt-3 mb-0">
-        {% if page_obj.has_previous %}
-          {% if search_query %}
-          <li class="page-item"><a class="page-link" href="?page=1&search={{search_query}}">&laquo; 1</a></li>
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{search_query}}">Previous</a></li>
-          {% else %}
-          <li class="page-item"><a class="page-link" href="?page=1">&laquo; 1</a></li>
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+      {% if page_obj.has_next or page_obj.has_previous %}
+      <nav aria-label="Page navigation " class="d-flex justify-content-center align-items-center">
+        <ul class="pagination pagination-custom mt-3 mb-0">
+          {% if page_obj.has_previous %}
+            {% if search_query %}
+            <li class="page-item"><a class="page-link" href="?page=1&search={{search_query}}">&laquo; 1</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{search_query}}">Previous</a></li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="?page=1">&laquo; 1</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+            {% endif %}
           {% endif %}
-        {% endif %}
 
-        
-        {% for page_num in page_range %}
-        {% if page_num == page_obj.number %}
-          <li class="page-item current-page">
-            <a class="page-link">{{ page_num }}</a>
-          </li>          
-        {% else %}
-          {% if search_query %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ page_num }}&search={{search_query}}">{{ page_num }}</a>
-          </li>
+          
+          {% for page_num in page_range %}
+          {% if page_num == page_obj.number %}
+            <li class="page-item current-page">
+              <a class="page-link">{{ page_num }}</a>
+            </li>          
           {% else %}
-          <li class="page-item">
-            <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
-          </li>
+            {% if search_query %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_num }}&search={{search_query}}">{{ page_num }}</a>
+            </li>
+            {% else %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
+            </li>
+            {% endif %}
           {% endif %}
-        {% endif %}
-      {% endfor %}
+        {% endfor %}
 
-        
-        {% if page_obj.has_next %}
-        {% if search_query %}
-        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{search_query}}">Next</a></li>
-        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&search={{search_query}}">{{page_obj.paginator.num_pages}} &raquo;</a></li>
-        {% else %}
-        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
-        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">{{page_obj.paginator.num_pages}} &raquo;</a></li>
-        {% endif %}
-        {% endif %}
-      </ul>
-    </nav>
-    {% endif %}
+          {% if page_obj.has_next %}
+            {% if search_query %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{search_query}}">Next</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&search={{search_query}}">{{page_obj.paginator.num_pages}} &raquo;</a></li>
+            {% else %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">{{page_obj.paginator.num_pages}} &raquo;</a></li>
+            {% endif %}
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
     {% endif %}
 </div>
+
+<div class="modal fade"
+  id="exampleModal"
+  tabindex="-1"
+  aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"></button>
+      </div>
+      <div id="swapelement">
+      </div>
+    </div>
+  </div>
+</div>
+
+{% comment %} filter {% endcomment %}
+<div class="offcanvas offcanvas-start visible"
+  data-bs-scroll="true"
+  tabindex="-1"
+  id="filter-offcanvas"
+  aria-labelledby="offcanvasWithBothOptionsLabel">
+  <div class="offcanvas-header">
+    
+    <h5 class="offcanvas-title fw-bold" id="offcanvasWithBothOptionsLabel">
+      FILTER
+    </h5>
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="offcanvas"
+      aria-label="Close"></button>
+    </div>
+    
+    <div class="offcanvas-body">
+      <h5>Date</h5>
+      <div class="d-flex gap-3 mb-5">
+        <div class="container-fluid p-0">
+          <label class="form-label text-black" for="month">Month</label>
+          <select class="form-select" aria-label="Default select example" name="month" id="date_month">
+            <option value="0" selected>All</option>
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+          </select>
+        </div>
+        <div class="container-fluid p-0">
+          <label class="form-label text-black">Year</label>
+          <input type="number" max=9999 name="date_year" class="form-control" id="date_year"/>
+        </div>
+      </div>
+
+      {% comment %} <h5>Time</h5>
+      <div class="d-flex gap-3 mb-5">
+        <div  class="container-fluid p-0">
+          <label class="form-label text-black">From</label>
+          <input type="time" class="form-control" id="date-filter" name="time-from"/>
+        </div>
+        <div class="container-fluid p-0">
+          <label class="form-label text-black">To</label>
+          <input type="time" class="form-control" id="date-filter" name="time-from"/>
+        </div>
+      </div> {% endcomment %}
+
+      <h5>Bean Type</h5>
+      <div class="container-fluid p-0 mb-5">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="excelsa" id="radio-Excelsa" name="type">
+          <label class="form-check-label" for="radio-Excelsa" >Excelsa</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="robusta" id="radio-Robusta" name="type">
+          <label class="form-check-label" for="radio-Robusta" >Robusta</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="liberica" id="radio-Liberica" name="type">
+          <label class="form-check-label" for="radio-Liberica" >Liberica</label>
+        </div>
+      </div>
+      <h5>Farm</h5>
+      <div class="container-fluid p-0 mb-5">
+        <div class="mb-3">
+          <input name="farm" type="text" class="form-control" id="farm" placeholder="Input Farm Name">
+        </div>
+      </div>
+      
+      <a href={% url "dashboard" %}>
+        <button class="btn btn-success">Reset</button>
+      </a>
+    </div>
+</div>
+{% comment %} end filter {% endcomment %}
 {% endblock content %}
+
+{% block script_content %}
+<script>
+  let container_main = $("#container-main");
+
+  let date_year = $("#date_year");
+  let date_month = $("#date_month");
+  let radio_Excelsa = $("#radio-Excelsa");
+  let radio_Robusta = $("#radio-Robusta");
+  let radio_Liberica = $("#radio-Liberica");
+  let search = $("#search");
+  let farm = $("#farm")
+  
+  async function filter_link(event) {
+    try {
+      let params = new URLSearchParams();
+      let paramValue = event.target.value;  // Get the value
+      let current_url = window.location.href;
+
+
+      if (date_month.val() != "0") {
+        params.set("month", date_month.val());
+      }
+
+      if (date_year.val() != 0 || date_year.val() != "") {
+        params.set("year", date_year.val());
+      }
+
+      let radio_types = []
+      
+      if (radio_Excelsa.is(":checked")) {
+        radio_types.push(radio_Excelsa.val());
+      }
+
+      if (radio_Robusta.is(":checked")) {
+        radio_types.push(radio_Robusta.val());
+      }
+
+      if (radio_Liberica.is(":checked")) {
+        radio_types.push(radio_Liberica.val());
+      }
+
+      if (farm.val()){
+        params.set("farm", farm.val());
+      }
+
+      if (radio_types.length > 0) {
+        params.set("type", radio_types.join("-"));
+      }
+
+      if (search.val()) {
+        params.set("title", search.val())
+      }
+
+      if (params.size > 0) {
+        history.pushState({}, "", "?" + params.toString());
+      } else {
+        history.pushState({},"", "{% url 'dashboard' %}");
+      }
+
+      let url = "{% url 'dashboard' %}?" + params.toString();
+
+      let response = await fetch(url, { 
+                                        method: "GET",
+                                        headers: {
+                                          "X-Requested-With": "XMLHttpRequest",
+                                        }
+                                      });
+      if (response.ok) {
+        let data = await response.json();
+        container_main.html(data.html);
+        htmx.process(container_main.get(0));
+
+      } else {
+        console.error("Error:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  }
+
+  date_year.on("change", filter_link);
+  date_month.on("change", filter_link);
+  radio_Excelsa.on("change", filter_link);
+  radio_Robusta.on("change", filter_link);
+  radio_Liberica.on("change", filter_link);
+  farm.on("input", filter_link);
+  search.on("input", filter_link);
+
+  window.addEventListener("popstate", filter_link);
+  
+</script>
+{% endblock script_content %}

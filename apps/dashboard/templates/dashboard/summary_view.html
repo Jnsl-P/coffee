@@ -22,7 +22,7 @@
     </a>
   </div>
   <div class="overflow-auto">
-    <table class="table flex-wrap text-wrap table-summary text-center">
+    {% comment %} <table class="table flex-wrap text-wrap table-summary text-center">
       <h2>Summary - Category 1 Defects</h2>
       <thead>
         <tr>
@@ -35,12 +35,34 @@
         {% if primary_defects_list %}
           {% for defect, value in primary_defects_list.items %}
           <tr>
-            <td scope="row">{{ defect }} ({{ value.2 }})</td>
+            <td scope="row " >{{ defect|title  }} ({{ value.2 }})</td>
             <td>{{ value.0 }}</td>
             <td>{{ value.1 }}</td>
           </tr>
           {% endfor %}
         {% endif %}
+      </tbody>
+    </table> {% endcomment %}
+
+    <table class="table flex-wrap text-wrap table-summary text-center">
+      <h2>Summary - Category 1 Defects</h2>
+      <thead>
+        <tr>
+          <th scope="col">Defects Name</th>
+          <th scope="col">Count</th>
+          <th scope="col">Full Defect Count</th>
+        </tr>
+      </thead>
+      <tbody style="border-top: 0" id="scan_body_container">
+      {% if primary_defects_list %}
+        {% for defect, value in primary_defects_list.items %}
+        <tr>
+          <td scope="row " >{{ defect|title  }} ({{ value.2 }})</td>
+          <td>{{ value.0 }}</td>
+          <td>{{ value.1 }}</td>
+        </tr>
+        {% endfor %}
+      {% endif %}
       </tbody>
     </table>
 
@@ -54,15 +76,15 @@
         </tr>
       </thead>
       <tbody style="border-top: 0" id="scan_body_container">
-        {% for defect, value in defects_list_sum.items %}
+      {% for defect, value in defects_list_sum.items %}
         {% if defect != "none" %}
         <tr>
-          <td scope="row">{{ defect }} ({{value.2}})</td>
+          <td scope="row" >{{ defect|title  }} ({{value.2}})</td>
           <td>{{ value.0 }}</td>
           <td>{{ value.1 }}</td>
         </tr>
         {% endif %}
-        {% endfor %}
+      {% endfor %}
       </tbody>
     </table>
   </div>

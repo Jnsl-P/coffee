@@ -6,6 +6,10 @@ from .models import BatchSession, DefectsDetected
 from django.views.generic.edit import CreateView, DeleteView
 from .forms import BatchSessionForm
 from django.urls import reverse_lazy
+from django.template.loader import render_to_string
+from django.db.models import Q
+
+
 
 import cv2  
 from .object_detection.object import ObjectDetection
@@ -28,20 +32,36 @@ class DashboardListView(LoginRequiredMixin, ListView):
     paginate_by = 5
     
     def get_queryset(self):
-        if self.request.GET.get("search"):
-            if len(self.request.GET.get("search").strip()) > 0:         
-                search_query = self.request.GET.get("search")
-                queryset = BatchSession.objects.filter(user=self.request.user, title__icontains=search_query).order_by("-date_created")
-                return queryset
-        queryset = BatchSession.objects.filter(user=self.request.user).order_by("-date_created")
+        query = Q(user=self.request.user)
+        
+        # Get filters
+        month = self.request.GET.get("month", "")
+        bean_types = self.request.GET.get("type")  # Multiple values
+        bean_types = str(bean_types).split("-")
+        year = self.request.GET.get("year","")
+        farm = self.request.GET.get("farm")
+        title = self.request.GET.get("title")
+        
+        if title:
+            query &= Q(title__contains=title)
+            
+        if month.isdigit():
+            query &= Q(date_created__month=int(month))
+        
+        if year.isdigit():
+            query &= Q(date_created__year=int(year))
+
+        if bean_types != ['None']:
+            query &= Q(bean_type__in=bean_types)
+            
+        if farm:
+            query &= Q(farm__contains=farm)
+        
+        queryset = BatchSession.objects.filter(query).order_by("-date_created")
         return queryset
-    
+        
     def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if self.request.GET.get("search"):
-            if len(self.request.GET.get("search").strip()) > 0:            
-                context['search_query'] = self.request.GET.get("search")
-                
+        context = super().get_context_data(**kwargs)                            
         page_obj = context['page_obj']
         paginator = page_obj.paginator
 
@@ -51,10 +71,25 @@ class DashboardListView(LoginRequiredMixin, ListView):
         context['page_range'] = range(start_index, end_index)
         return context
     
+    def render_to_response(self, context, **response_kwargs):
+        # Check if request is AJAX
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            new_batch = self.object_list
+            html = render_to_string('dashboard/partials/filter_batch.html', {'filtered_batch': new_batch}, request=self.request)
+            return JsonResponse({"html": html}, safe=False)
+
+        return super().render_to_response(context, **response_kwargs)
+    
 class DeleteSessionView(LoginRequiredMixin, DeleteView):
     model = BatchSession
     template_name = "dashboard/partials/deleteSessionView.html"
     success_url = reverse_lazy("dashboard")
+    
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+    
 
 class AddSession(LoginRequiredMixin, CreateView):
     model = BatchSession
@@ -185,7 +220,7 @@ class ScanView(LoginRequiredMixin, TemplateView):
 def start_capture(request):
     return render(request, "dashboard/partials/camera_buttons.html")
 
-    
+  
 # SUMMARY   
 class SummaryView(LoginRequiredMixin, TemplateView):
     template_name = "dashboard/summary_view.html"

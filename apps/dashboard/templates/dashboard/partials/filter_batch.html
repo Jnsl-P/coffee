@@ -1,0 +1,91 @@
+<div class="mb-3">
+  <div class="row session-batches-header fw-bold fs-5 m-0 p-3">
+    <div class="col">Title</div>
+    <div class="col">Date</div>
+    <div class="col">Time</div>
+    <div class="col">Bean type</div>
+    <div class="col">Farm</div>
+  </div>
+</div>
+<div id="session-list-container">
+  {% for object in filtered_batch %}
+  <div class="session-list container-fluid">
+    <div
+      class="row p-3 mb-3 session-batches-container"
+      data-bs-toggle="collapse"
+      href="#collapseExample{{object.batch_id}}"
+      role="button"
+      aria-expanded="false"
+      aria-controls="collapseExample1">
+      <div class="col">{{ object.title }}</div>
+      <div class="col">{{object.date_created|date:"F d, Y" }}</div>
+      <div class="col">{{ object.date_created|date:"h:i A" }}</div>
+      <div class="col">{{ object.bean_type }}</div>
+      <div class="col">{{ object.farm }}</div>
+    </div>
+
+    <div class="collapse" id="collapseExample{{object.batch_id}}">
+      <ul class="list-group gap-2 mb-4">
+        <a href="{% url "scan" object.batch_id object.title%}"
+          class="text-decoration-none">
+          <li
+            class="list-group-item d-flex justify-content-between btn btn-dark rounded-3 new-scan-btn">
+            <span> Add New Scan </span
+            ><span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-caret-right-fill"
+                viewBox="0 0 16 16">
+                <path
+                  d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z" />
+              </svg>
+            </span></li
+        ></a>
+        <a
+          class="text-decoration-none"
+          href="{% url 'view_scans' object.batch_id object.title %}"
+          ><li
+            class="list-group-item d-flex justify-content-between btn rounded-3 new-scan-btn">
+            <span> View Scans </span
+            ><span>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                class="bi bi-caret-right-fill"
+                viewBox="0 0 16 16">
+                <path
+                  d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z" />
+              </svg>
+            </span></li
+        ></a>
+        
+        <li class="list-group-item d-flex justify-content-between btn rounded-3 delete-session-btn" 
+        data-bs-toggle="modal" 
+        data-bs-target="#exampleModal"
+        hx-get="{% url "delete_session" object.batch_id%}"
+        hx-swap="innerHTML"
+        hx-target="#swapelement"
+        hx-trigger="click">
+          <span> Delete Batch Session </span><span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="currentColor"
+              class="bi bi-caret-right-fill"
+              viewBox="0 0 16 16">
+              <path
+                d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z" />
+            </svg>
+          </span>
+        </li>
+      </ul>
+    </div>
+  </div>
+  {% endfor %}
+</div> 
