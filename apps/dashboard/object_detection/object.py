@@ -1,10 +1,12 @@
+import random
 import cv2
 import numpy as np
 import os
 import threading
 from ultralytics import YOLO
+from ultralytics.utils.plotting import Annotator, colors
 
-path = r"apps\dashboard\object_detection\last.pt"
+path = r"apps\dashboard\object_detection\yolo11n-seg.pt"
 model = YOLO(path)  # Load a pretrained model (e.g., yolov8n.pt, yolov8s.pt, etc.)
 screenshot_dir = "./static/images/"
 os.makedirs(screenshot_dir, exist_ok=True)  # Ensure the directory exists
@@ -41,8 +43,11 @@ class ObjectDetection:
 
     def get_last_frame(self):
         captured = self.start_detects()
-        self.final_annotated_image = captured
-        return self.final_annotated_image
+        return captured
+    
+        # # for custom percent confidence
+        # self.final_annotated_image = captured
+        # return self.final_annotated_image
         
 
     def start_detects(self, confidence_threshold=0.2):
@@ -50,15 +55,34 @@ class ObjectDetection:
             # uncomment the following lines to test with an image file
             # ==================== test image ====================
             
-            image = "422c69cd-4043-471f-9708-9f164b391172.jpg"
-            imagepath = "apps/dashboard/object_detection/" + image
-            self.frame = cv2.imread(imagepath, cv2.IMREAD_COLOR)
+            image_name = "360_F_646964321_VNNY1b8Vk84iwOiqSBZ1T4Kf5PQOeVvw.jpg"
+            imagepath = "apps/dashboard/object_detection/" + image_name
+            annotated_image = cv2.imread(imagepath, cv2.IMREAD_COLOR)
             
             # ==================== test image ====================
 
 
             # ==================== YOLO Model Inference ====================
-            self.results = model(self.frame)
+            names = model.model.names
+
+            results = model.predict(annotated_image)
+            annotator = Annotator(annotated_image, line_width=1)
+
+            if results[0].masks is not None:
+                clss = results[0].boxes.cls.cpu().tolist()
+                masks = results[0].masks.xy
+                for mask, cls in zip(masks, clss):
+                    color = colors(int(cls), True)
+                    txt_color = annotator.get_txt_color(color)
+                    annotator.seg_bbox(mask=mask, mask_color=color, label=names[int(cls)], txt_color=txt_color)
+
+
+            return annotated_image
+            
+        
+            
+            
+            '''self.results = model(self.frame)
             # annotated_frame = self.frame.copy()
 
             detections = self.results[0]  # First result corresponds to the current frame/image
@@ -102,7 +126,8 @@ class ObjectDetection:
                     # Update defects dictionary
                     self.defects[label] = self.defects.get(label, 0) + 1
                     
-            return self.frame
+            return self.frame'''
+            
         except Exception as err:
             print(err)
         

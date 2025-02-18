@@ -239,7 +239,6 @@
       if (data.success) {
         scannedImage.attr("src",
         `data:image/jpeg;base64, ${data.captured_frame}`)
-
       }
       scannedImage.on("load", function () { 
         takePhotoBtn.addClass("d-none")
