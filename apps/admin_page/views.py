@@ -11,7 +11,9 @@ from django.views.generic import TemplateView
 from django.urls import reverse_lazy
 from django.contrib.auth.models import User
 from .forms import AdminLoginForm
-from django.views.generic.edit import DeleteView
+from django.views.generic.edit import DeleteView, UpdateView
+from django.views.generic.detail import DetailView
+
 
 
 class AdminLoginView(FormView):
@@ -58,6 +60,12 @@ class AdminListView(LoginRequiredMixin, TemplateView):
             return redirect(reverse_lazy('login'))
         
         return self.render_to_response(context)
+    
+class Admin_UserDetailView(LoginRequiredMixin, UpdateView):
+    template_name = "admin_page/AdminUserView.html"
+    success_url = reverse_lazy("admin_dashboard")
+    fields = ["first_name", "last_name","email",]
+    model = User
 
 class DeleteUserView(LoginRequiredMixin, DeleteView):
     model = User

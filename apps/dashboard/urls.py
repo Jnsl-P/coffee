@@ -23,6 +23,10 @@ urlpatterns = [
     
     # Summary
     path('dashboard/view/<int:batch_id>/<str:title>/summary/', views.SummaryView.as_view(), name="view_summary"),
+        
+    # Profile
+    path('Profile/', views.ProfileView.as_view(), name="profile_view"),
+    path('Profile/Edit/', views.ProfileEditView.as_view(), name="profile_edit"),
     
     # Object Detection
     path('check_camera', views.check_camera, name="check_camera"),

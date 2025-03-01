@@ -1,15 +1,16 @@
+from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, DetailView
 from django.views.generic.list import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import BatchSession, DefectsDetected
-from django.views.generic.edit import CreateView, DeleteView
-from .forms import BatchSessionForm
+from django.views.generic.edit import CreateView, DeleteView, UpdateView, FormView
+from .forms import BatchSessionForm, ProfileForm
 from django.urls import reverse_lazy
 from django.template.loader import render_to_string
 from django.db.models import Q
-
-
+from django.contrib.auth.models import User
+from django.contrib.auth import update_session_auth_hash
 
 import cv2  
 from .object_detection.object import ObjectDetection
@@ -58,10 +59,34 @@ class DashboardListView(LoginRequiredMixin, ListView):
             query &= Q(farm__contains=farm)
         
         queryset = BatchSession.objects.filter(query).order_by("-date_created")
+        
         return queryset
         
-    def get_context_data(self, *args, **kwargs):
+    def get_context_data(self, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)                            
+        context['current_time'] = datetime.now().strftime("%H:%M:%S")
+ 
+        queryset = object_list if object_list is not None else self.object_list
+        page_size = self.get_paginate_by(queryset)
+
+        print("PAGESIZE:", page_size)
+        if page_size:
+            paginator, page, queryset, is_paginated = self.paginate_queryset(
+                queryset, page_size
+            )
+            context = {
+                "paginator": paginator,
+                "page_obj": page,
+                "is_paginated": is_paginated,
+                "object_list": queryset,
+            }
+        else:
+            context = {
+                "paginator": None,
+                "page_obj": None,
+                "is_paginated": False,
+                "object_list": queryset,
+            }
         page_obj = context['page_obj']
         paginator = page_obj.paginator
 
@@ -71,10 +96,26 @@ class DashboardListView(LoginRequiredMixin, ListView):
         context['page_range'] = range(start_index, end_index)
         return context
     
+    # def get_context_data(self, *args, **kwargs):
+    #     context = super().get_context_data(**kwargs)                            
+    #     # context['current_time'] =  datetime.now()        
+    #     context['current_time'] = datetime.now().strftime("%H:%M:%S")
+        
+    #     page_obj = context['page_obj']
+    #     print(page_obj)
+    #     paginator = page_obj.paginator
+
+    #     # Custom page range calculation
+    #     start_index = max(1, page_obj.number - 2)
+    #     end_index = min(paginator.num_pages + 1, page_obj.number + 3)
+    #     context['page_range'] = range(start_index, end_index)
+    #     return context
+    
     def render_to_response(self, context, **response_kwargs):
         # Check if request is AJAX
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            new_batch = self.object_list
+            new_batch = self.get_context_data()
+            # new_batch = new_batch['page_obj'] 
             html = render_to_string('dashboard/partials/filter_batch.html', {'filtered_batch': new_batch}, request=self.request)
             return JsonResponse({"html": html}, safe=False)
 
@@ -292,6 +333,57 @@ class SummaryView(LoginRequiredMixin, TemplateView):
         context["defects_list_sum"] = defects_list_sum
         context["primary_defects_list"] = primary_defects_list
         return context
+    
+# PROFILE VIEW
+class ProfileView(LoginRequiredMixin, TemplateView):
+    template_name = "dashboard/profile_view.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user        
+        context["form"] = ProfileForm(instance=user)
+        
+        return context
+
+class ProfileEditView(LoginRequiredMixin, FormView):
+    template_name = "dashboard/profile_edit.html"
+    success_url = reverse_lazy("profile_view") 
+    form_class = ProfileForm
+
+    def get_form(self, form_class=None):
+        """Return an instance of the form to be used in this view."""
+        form_class = ProfileForm(self.request.POST)
+        return form_class
+
+    def form_valid(self, form):
+        user_instance = get_object_or_404(User, id=self.request.user.id)
+        user_instance.first_name = form.cleaned_data.get("first_name")
+        user_instance.last_name = form.cleaned_data.get("last_name")
+        user_instance.email = form.cleaned_data.get("email")
+        
+        if len(form.cleaned_data.get("password")) > 0:
+            if form.cleaned_data.get("password") == form.cleaned_data.get("reenter_password"):                
+                user_instance.set_password(form.cleaned_data.get("password"))
+                user_instance.save()
+                update_session_auth_hash(self.request, user_instance)
+            else:
+                messages.add_message(self.request, messages.WARNING, "Password did not match!")
+                self.success_url = reverse_lazy("profile_edit")
+            
+        user_instance.save()
+        if not messages.get_messages(self.request):
+            messages.add_message(self.request, messages.SUCCESS, "Profile updated!")
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = ProfileForm(instance=self.request.user)
+        return context
+    
+    
+
+        
+    
 
 # OBJECT DETECTION
 def check_camera(request):

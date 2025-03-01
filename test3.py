@@ -4,12 +4,12 @@ import numpy as np
 from ultralytics import YOLO
 
 # Load segmentation and classification models
-m_segment = YOLO("best-seg2.pt")  
+m_segment = YOLO("latest_best_seg.pt")  
 m_classify = YOLO(r"C:\Users\user\OneDrive\Desktop\django_coffee\coffee\apps\dashboard\object_detection\last11.pt")  
 
 # Load the input image
-image_path = r"C:\Users\user\OneDrive\Desktop\django_coffee\coffee\apps\dashboard\object_detection\422c69cd-4043-471f-9708-9f164b391172.jpg"
-res = m_segment.predict(image_path)  
+image_path = r"C:\Users\user\OneDrive\Desktop\django_coffee\coffee\apps\dashboard\object_detection\ec5444fb-b81c-41d3-8ab9-0743ca14a212.jpg"
+res = m_segment.predict(image_path)
 
 # Read the original image
 img = cv2.imread(image_path)
@@ -32,6 +32,7 @@ for r in res:
         cv2.drawContours(b_mask, [contour], -1,  (255, 255, 255), cv2.FILLED)
         
         
+        
         # Convert to 3-channel mask
         mask3ch = cv2.cvtColor(b_mask, cv2.COLOR_GRAY2BGR)
         
@@ -52,7 +53,6 @@ for r in res:
         else:
             classification_label = "Unknown"  # Fallback label if no prediction is made
 
-        
         # Draw classification result on the image
         x, y, w, h = cv2.boundingRect(contour)
         cv2.putText(img, classification_label, (x, y - 10), cv2.FONT_HERSHEY_DUPLEX, 2, (0, 0, 0), 2)

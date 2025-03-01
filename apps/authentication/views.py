@@ -43,16 +43,17 @@ class UserCreateView(FormView):
     success_url = reverse_lazy("login")
     
     def form_valid(self, form):
-        if form.cleaned_data.get("password") == form.cleaned_data.get("password2"):
-            form.save()
+        created = User.objects.filter(username=form.cleaned_data.get("username"))
+        
+        print("CRAETED:",created)
+        if not created:
+            if form.cleaned_data.get("password") == form.cleaned_data.get("password2"):
+                form.save()
+            else:
+                messages.add_message(self.request, messages.WARNING, "Password did not match!")
+                self.success_url = reverse_lazy('register')
         else:
-            messages.add_message(self.request, messages.WARNING, "Password did not match!")
-            self.success_url = reverse_lazy('register')
-            
-        if form.cleaned_data.get("password"):
-            form.save()
-        else:
-            messages.add_message(self.request, messages.WARNING, "Password did not match!")
+            messages.add_message(self.request, messages.WARNING, "Username Exist!")
             self.success_url = reverse_lazy('register')
             
         return super().form_valid(form)
@@ -63,6 +64,6 @@ class UserCreateView(FormView):
     
 
 def logout_user(request):
-    print("USER:", request.user)
+    print("USER LOGOUT:", request.user)
     logout(request)
     return redirect("index")

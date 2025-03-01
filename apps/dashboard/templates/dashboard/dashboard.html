@@ -177,46 +177,47 @@
       {% endfor %}
     </div> 
     
+    {% comment %}  paginator {% endcomment %}
     {% if page_obj.paginator.num_pages > 1%}
       {% if page_obj.has_next or page_obj.has_previous %}
       <nav aria-label="Page navigation " class="d-flex justify-content-center align-items-center">
         <ul class="pagination pagination-custom mt-3 mb-0">
           {% if page_obj.has_previous %}
             {% if search_query %}
-            <li class="page-item"><a class="page-link" href="?page=1&search={{search_query}}">&laquo; 1</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{search_query}}">Previous</a></li>
+            <li class="page-item pages"><a class="page-link" href="?page=1&search={{search_query}}">&laquo; 1</a></li>
+            <li class="page-item pages"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{search_query}}">Previous</a></li>
             {% else %}
-            <li class="page-item"><a class="page-link" href="?page=1">&laquo; 1</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+            <li class="page-item"><a class="page-link pages" href="?page=1">&laquo; 1</a></li>
+            <li class="page-item"><a class="page-link pages" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
             {% endif %}
           {% endif %}
 
           
           {% for page_num in page_range %}
-          {% if page_num == page_obj.number %}
-            <li class="page-item current-page">
-              <a class="page-link">{{ page_num }}</a>
-            </li>          
-          {% else %}
-            {% if search_query %}
-            <li class="page-item">
-              <a class="page-link" href="?page={{ page_num }}&search={{search_query}}">{{ page_num }}</a>
-            </li>
+            {% if page_num == page_obj.number %}
+              <li class="page-item current-page">
+                <a class="page-link">{{ page_num }}</a>
+              </li>          
             {% else %}
-            <li class="page-item">
-              <a class="page-link" href="?page={{ page_num }}">{{ page_num }}</a>
-            </li>
+              {% if search_query %}
+              <li class="page-item">
+                <a class="page-link pages" href="?page={{ page_num }}&search={{search_query}}">{{ page_num }}</a>
+              </li>
+              {% else %}
+              <li class="page-item">
+                <a class="page-link pages" href="?page={{ page_num }}">{{ page_num }}</a>
+              </li>
+              {% endif %}
             {% endif %}
-          {% endif %}
-        {% endfor %}
+          {% endfor %}
 
           {% if page_obj.has_next %}
             {% if search_query %}
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{search_query}}">Next</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&search={{search_query}}">{{page_obj.paginator.num_pages}} &raquo;</a></li>
+            <li class="page-item"><a class="page-link pages" href="?page={{ page_obj.next_page_number }}&search={{search_query}}">Next</a></li>
+            <li class="page-item"><a class="page-link pages" href="?page={{ page_obj.paginator.num_pages }}&search={{search_query}}">{{page_obj.paginator.num_pages}} &raquo;</a></li>
             {% else %}
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
-            <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">{{page_obj.paginator.num_pages}} &raquo;</a></li>
+            <li class="page-item"><a class="page-link pages" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+            <li class="page-item"><a class="page-link pages" href="?page={{ page_obj.paginator.num_pages }}">{{page_obj.paginator.num_pages}} &raquo;</a></li>
             {% endif %}
           {% endif %}
         </ul>
@@ -225,6 +226,7 @@
     {% endif %}
 </div>
 
+{% comment %} MODAL {% endcomment %}
 <div class="modal fade"
   id="exampleModal"
   tabindex="-1"
@@ -245,7 +247,7 @@
   </div>
 </div>
 
-{% comment %} filter {% endcomment %}
+{% comment %} FILTER {% endcomment %}
 <div class="offcanvas offcanvas-start visible"
   data-bs-scroll="true"
   tabindex="-1"
@@ -334,6 +336,9 @@
 
 {% block script_content %}
 <script>
+  let ques = new URLSearchParams(window.location.search);
+  let pages = document.querySelectorAll(".pages")
+
   let container_main = $("#container-main");
 
   let date_year = $("#date_year");
@@ -350,7 +355,6 @@
       let paramValue = event.target.value;  // Get the value
       let current_url = window.location.href;
 
-
       if (date_month.val() != "0") {
         params.set("month", date_month.val());
       }
@@ -361,6 +365,7 @@
 
       let radio_types = []
       
+      // radio filter
       if (radio_Excelsa.is(":checked")) {
         radio_types.push(radio_Excelsa.val());
       }
@@ -373,14 +378,17 @@
         radio_types.push(radio_Liberica.val());
       }
 
+      // farm filter
       if (farm.val()){
         params.set("farm", farm.val());
       }
 
+      // bean tpye filter
       if (radio_types.length > 0) {
         params.set("type", radio_types.join("-"));
       }
 
+      // search title filter
       if (search.val()) {
         params.set("title", search.val())
       }
@@ -390,20 +398,22 @@
       } else {
         history.pushState({},"", "{% url 'dashboard' %}");
       }
+      
 
       let url = "{% url 'dashboard' %}?" + params.toString();
 
       let response = await fetch(url, { 
-                                        method: "GET",
-                                        headers: {
-                                          "X-Requested-With": "XMLHttpRequest",
-                                        }
-                                      });
+        method: "GET",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+        }
+      });
+      
       if (response.ok) {
         let data = await response.json();
         container_main.html(data.html);
         htmx.process(container_main.get(0));
-
+        change_pagination_url()
       } else {
         console.error("Error:", response.statusText);
       }
@@ -421,6 +431,27 @@
   search.on("input", filter_link);
 
   window.addEventListener("popstate", filter_link);
+
+  change_pagination_url()
   
+  function change_pagination_url(){
+    let pages = document.querySelectorAll(".pages")
+    let current_params = ""
+    for (let i =0; i < pages.length; i++){
+      let params =  new URLSearchParams(window.location.search);
+      current_page = params.get("page");
+      if (current_page){
+        current_params = window.location.search.split("page="+current_page+"&")[1]        
+      } else {
+        current_params = window.location.search.split("?")[1]        
+      }
+      let q = new URLSearchParams(pages[i].href.split("?")[1]);
+      page_num = q.get("page");
+
+      if(current_params){
+        pages[i].href = {% url "dashboard" %} + `?page=${page_num}&${current_params}`; 
+      }
+    }
+  }
 </script>
 {% endblock script_content %}

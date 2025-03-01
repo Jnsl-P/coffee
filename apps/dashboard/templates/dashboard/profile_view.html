@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% load widget_tweaks %}
+{% block content %}
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+<div class="mb-3">
+    <label for="id_{{form.first_name.name}}" class="fw-bold col-sm-2 col-form-label">First Name</label>
+    <div class="col-sm-10">
+        {{ form.first_name|attr:"disabled class=form-control" }}
+    </div>
+</div>
+<div class="mb-3">
+    <label for="id_{{form.last_name.name}}" class="fw-bold col-sm-2 col-form-label">Last Name</label>
+    <div class="col-sm-10">
+        {{ form.last_name|attr:"disabled class=form-control" }}
+    </div>
+</div>
+<div class="mb-3">
+    <label for="id_{{form.last_name.name}}" class="fw-bold col-sm-2 col-form-label">Email</label>
+    <div class="col-sm-10">
+        {{ form.email|attr:"disabled class=form-control" }}
+    </div>
+</div>
+<div class="mb-3">
+    <label for="id_{{form.password.name}}" class="fw-bold col-sm-2 col-form-label">Password</label>
+    <div class="col-sm-10">
+        {{ form.password|attr:"disabled class=form-control" }}
+    </div>
+</div>
+
+<a href="{% url "profile_edit" %}" class="btn btn-success">Edit</a>
+{% endblock content %}

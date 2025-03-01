@@ -208,6 +208,10 @@ table.custom-bordered td:first-child {
   border-color: var(--main-green-theme) !important;
 }
 
+.dropdown-logins li a:active {
+  background-color: rgba(202, 202, 202, 0.473);
+  color: #212529;
+}
 
 
 

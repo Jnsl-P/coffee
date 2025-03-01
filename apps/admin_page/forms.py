@@ -20,4 +20,3 @@ class AdminLoginForm(forms.Form):
             raise forms.ValidationError("Invalid username or password.")
         self.user = user  # Save the authenticated user
         return cleaned_data
-    

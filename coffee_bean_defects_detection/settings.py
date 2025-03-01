@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'apps.dashboard.apps.DashboardConfig',
     
     'widget_tweaks',
+    'crispy_forms',
+    "crispy_bootstrap5",
 ]
 
 MIDDLEWARE = [

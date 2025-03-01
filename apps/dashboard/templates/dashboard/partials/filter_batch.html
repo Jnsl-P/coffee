@@ -8,7 +8,7 @@
   </div>
 </div>
 <div id="session-list-container">
-  {% for object in filtered_batch %}
+  {% for object in filtered_batch.page_obj %}
   <div class="session-list container-fluid">
     <div
       class="row p-3 mb-3 session-batches-container"
@@ -89,3 +89,51 @@
   </div>
   {% endfor %}
 </div> 
+
+{% comment %} PAGES {% endcomment %}
+{% if filtered_batch.page_obj.paginator.num_pages > 1%}
+    {% if filtered_batch.page_obj.has_next or filtered_batch.page_obj.has_previous %}
+    <nav aria-label="Page navigation " class="d-flex justify-content-center align-items-center">
+      <ul class="pagination pagination-custom mt-3 mb-0">
+        {% if filtered_batch.page_obj.has_previous %}
+          {% if search_query %}
+          <li class="page-item"><a class="page-link pages" href="?page=1&search={{filtered_batch.search_query}}">&laquo; 1</a></li>
+          <li class="page-item"><a class="page-link pages" href="?page={{ filtered_batch.page_obj.previous_page_number }}&search={{filtered_batch.search_query}}">Previous</a></li>
+          {% else %}
+          <li class="page-item"><a class="page-link pages" href="?page=1">&laquo; 1</a></li>
+          <li class="page-item"><a class="page-link pages" href="?page={{ filtered_batch.page_obj.previous_page_number }}">Previous</a></li>
+          {% endif %}
+        {% endif %}
+
+        
+        {% for page_num in filtered_batch.page_range %}
+        {% if page_num == filtered_batch.page_obj.number %}
+          <li class="page-item current-page">
+            <a class="page-link">{{ page_num }}</a>
+          </li>          
+        {% else %}
+          {% if search_query %}
+          <li class="page-item">
+            <a class="page-link pages" href="?page={{ page_num }}&search={{filtered_batch.search_query}}">{{ page_num }}</a>
+          </li>
+          {% else %}
+          <li class="page-item">
+            <a class="page-link pages" href="?page={{ page_num }}">{{ page_num }}</a>
+          </li>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+
+      {% if filtered_batch.page_obj.has_next %}
+        {% if filtered_batch.search_query %}
+        <li class="page-item"><a class="page-link pages" href="?page={{ filtered_batch.page_obj.next_page_number }}&search={{filtered_batch.search_query}}">Next</a></li>
+        <li class="page-item"><a class="page-link pages" href="?page={{ filtered_batch.page_obj.paginator.num_pages }}&search={{filtered_batch.search_query}}">{{filtered_batch.page_obj.paginator.num_pages}} &raquo;</a></li>
+        {% else %}
+        <li class="page-item"><a class="page-link pages" href="?page={{ filtered_batch.page_obj.next_page_number }}">Next</a></li>
+        <li class="page-item"><a class="page-link pages" href="?page={{ filtered_batch.page_obj.paginator.num_pages }}">{{filtered_batch.page_obj.paginator.num_pages}} &raquo;</a></li>
+        {% endif %}
+      {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+  {% endif %}

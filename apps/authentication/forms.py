@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.forms import ModelForm
+from django.shortcuts import get_object_or_404
 
 
 class UserLoginForm(forms.Form):
@@ -47,11 +48,11 @@ class UserCreationForm(forms.Form):
 
     def save(self, commit=True):
         user = User.objects.create_user(
-            username=self.cleaned_data['username'],
-            password=self.cleaned_data['password'],
             email=self.cleaned_data['email'],
             first_name=self.cleaned_data['first_name'],
-            last_name=self.cleaned_data['last_name']
+            last_name=self.cleaned_data['last_name'],
+            username=self.cleaned_data['username'],
+            password=self.cleaned_data['password']
         )
         if commit:
             user.save()
