@@ -1,7 +1,23 @@
 {% extends "layout.html" %}
+{% load widget_tweaks %}
+{% block header_title %}
+Edit User
+{% endblock header_title %}
+
 {% block content %}
 <form method="post">{% csrf_token %}
-    {{ form.as_p }}
+    <div class="mb-3">
+        <label for="{{form.first_name.name}}" class="form-label text-black">First Name</label>
+        {{ form.first_name|add_class:'form-control' }}
+    </div>
+    <div class="mb-3">
+        <label for="{{form.last_name.name}}" class="form-label text-black">Last Name</label>
+        {{ form.last_name|add_class:'form-control' }}
+    </div>
+    <div class="mb-3">
+        <label for="{{form.email.name}}" class="form-label text-black">Email</label>
+        {{ form.email|add_class:'form-control' }}
+    </div>
     <a href={% url "admin_dashboard" %} class="btn btn-success">
         Cancel
     </a>

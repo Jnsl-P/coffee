@@ -1,4 +1,9 @@
 {% extends "layout.html"%}
+
+{% block header_title %}
+Administrator
+{% endblock header_title %}
+
 {% block content %}{% if messages %}
 {% for message in messages %}
 <div class="alert alert-success">

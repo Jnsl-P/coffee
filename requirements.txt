@@ -6,3 +6,5 @@ ultralytics
 django-widget-tweaks
 django-htmx
 Django
+django-crispy-forms
+crispy-bootstrap5

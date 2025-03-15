@@ -43,6 +43,23 @@
   border: none;
 }
 
+/* .btn-success:active:focus{
+  box-shadow: none !important;
+  background-color: #195022;
+}
+
+.btn-success:focus{
+  box-shadow: none !important;
+  background-color: #195022;
+}
+
+.btn:focus{
+  box-shadow: none !important;
+  background-color: #195022;
+} */
+
+
+
 .form-field-container label{
   font-weight: bold !important;
 }

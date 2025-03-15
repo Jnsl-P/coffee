@@ -22,7 +22,9 @@
     <div class="container-md mb-3">
       <div>
         <div class="title row flex-column-reverse flex-sm-row m-0">
-          <h3 class="col my-4 p-0">Coffee Bean Defects Detection</h3>
+          <h3 class="col my-4 p-0">
+            {% block header_title %}{% endblock header_title %}
+          </h3>
           <div class="col col-sm-3 my-4 col-md-3 text-sm-center text-md-end p-0">
             <div
               class="dropdown-toggle btn p-0"

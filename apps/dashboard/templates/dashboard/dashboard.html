@@ -1,4 +1,7 @@
-{% extends "layout.html" %} 
+{% extends "layout.html" %}
+{% block header_title %}
+  Coffee Bean Defects Detection
+{% endblock header_title %} 
 {% block head_content %} 
 {% if messages %} {% for message in messages %}
 <div class="alert alert-success alert-dismissible fade show" role="alert">
