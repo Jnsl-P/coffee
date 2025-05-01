@@ -21,7 +21,7 @@
         </svg>
     </div>
 
-    <img src="" id="scannedImage" alt="Camera Feed Placeholder" style="width: 100%; height: auto; border-radius: 10px" class="d-none" />
+    <image src="" id="scannedImage" alt="Camera Feed Placeholder" style="width: 100%; height: auto; border-radius: 10px" class="d-none">
 
     <div class="spinner-border d-none spinnerLoading" role="status">
       <span class="visually-hidden">Loading...</span>
@@ -126,6 +126,7 @@
   </div>
 </div> 
 {% endblock content %}
+
 {% block script_content %}
 <script>
   let start_camera_button = $("#start-camera-btn");
@@ -166,64 +167,12 @@
     }
   });
 
-  // stop camera capture
-  {% comment %} cancelStopBtn.click(function (e) {
-    scannedImage.attr("src", "");
-    scannedImage.addClass("d-none");
-
-    stopAndCaptureBtn.addClass("d-none")
-    spinnerLoading.addClass("d-none");
-    camLogoContainer.removeClass("d-none");
-    camContainer.removeClass("border-0");
-    
-    start_camera_button.removeClass("d-none");
-  }); {% endcomment %}
-
-
-  {% comment %} async function captureEnd() {
-    takePhotoBtn.addClass("d-none")
-    spinnerLoading.removeClass("d-none");
-    scannedImage.attr("src", "");
-    scannedImage.addClass("d-none");
-    camContainer.removeClass("border-0");
-
-    try {
-      let response = await fetch("{% url 'stop_object_py' %}");
-      let data = await response.json();
-      if (data.success) {
-        scannedImage.attr("src",
-        `data:image/jpeg;base64, ${data.captured_frame}`)
-
-      }
-      scannedImage.on("load", function () { 
-        takePhotoBtn.addClass("d-none")
-        submitResultsBtn.removeClass("d-none");
-        cancelStopBtn.removeClass("d-none");
-        spinnerLoading.addClass("d-none");
-        scannedImage.removeClass("d-none");
-        fetch("{% url 'get_defects' %}")
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-          })
-          .then((data) => {
-            if (data.success) {
-              $("#defects_list").html(data.html);
-            }
-          });
-      });
-    }
-    catch (error) {
-      console.error("Error stopping scan:", error);
-      alert(
-        "Error occurred while stopping the scan. Please check server logs."
-      );
-    }
+  {% comment %} function call_test(){
+    let load_response = fetch("{% url "load_reponse" %}")
+    let response = fetch("{% url 'stop_object_py' %}");
+    return response
   } {% endcomment %}
-
-
+ 
   async function captureEnd() {
     takePhotoBtn.addClass("d-none")
 
@@ -234,7 +183,9 @@
     camContainer.removeClass("border-0");
 
     try {
+      
       let response = await fetch("{% url 'stop_object_py' %}");
+      // let response = await call_test()
       let data = await response.json();
       if (data.success) {
         scannedImage.attr("src",

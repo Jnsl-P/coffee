@@ -10,8 +10,8 @@ from crispy_forms.layout import Layout, Fieldset, Submit
 
 class BatchSessionForm(forms.ModelForm):
     BEAN_TYPE_CHOICES = [
-        ('robusta', 'Robusta'),
-        ('liberica', 'Liberica'),
+        # ('robusta', 'Robusta'),
+        # ('liberica', 'Liberica'),
         ('excelsa', 'Excelsa'),
     ]
 

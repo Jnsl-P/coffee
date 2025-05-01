@@ -1,8 +1,9 @@
-import torch
+from pillow_heif import open_heif
+from PIL import Image
+import numpy as np
 import cv2
 import os
 from ultralytics import YOLO
-import numpy as np
 from random import randint
 
 def random_with_N_digits(n):
@@ -11,18 +12,27 @@ def random_with_N_digits(n):
     range_end = (10**n)-1
     return randint(range_start, range_end)
 
+def convert(heic_path):
+    # Load HEIC image
+    heif_file = open_heif(heic_path)  # Replace with your HEIC file path
+    image = Image.frombytes(heif_file.mode, heif_file.size, heif_file.data)
+
+    # Convert to OpenCV format
+    image = np.array(image)
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)  # Convert RGB to BGR for OpenCV
+    return(image)
+
 # Load the YOLOv11 model_classification (adjust the path to your trained weights)
 model_classification = YOLO(r"last.pt")  # Replace with your trained YOLO model_classification
-
-# Input and output folders
-input_folder = r"c:\Users\user\OneDrive\Desktop\2withered2"
-output_folder = r"c:\Users\user\OneDrive\Desktop\CROPS"
+input_folder = r"c:\Users\user\OneDrive\Downloads\new_iamges\good 04-23-2025"
+output_folder = r"C:\Users\user\OneDrive\Desktop\all_defects\2\zpreveiw"
 os.makedirs(output_folder, exist_ok=True)
+
 
 # Process each image in the input folder
 for img_name in os.listdir(input_folder):
     img_path = os.path.join(input_folder, img_name)
-    img = cv2.imread(img_path)
+    img = convert(img_path)
     
 
     # Run YOLOv11 inference
@@ -37,12 +47,6 @@ for img_name in os.listdir(input_folder):
             # Crop detected object
             iso_crop = img[int(y1):int(y2), int(x1):int(x2)]
 
-            target_width = 400
-            h, w = iso_crop.shape[:2]
-            aspect_ratio = h / w
-            new_height = int(target_width * aspect_ratio)
-            iso_crop = cv2.resize(iso_crop, (target_width, new_height))  
-
             # Save the cropped image
             crop_filename = f"iso_{random_with_N_digits(8)}.jpg"
             crop_path = os.path.join(output_folder, crop_filename)
@@ -50,3 +54,7 @@ for img_name in os.listdir(input_folder):
             print(f"Saved cropped image: {crop_path}")
 
 print("Processing completed.")
+
+
+
+

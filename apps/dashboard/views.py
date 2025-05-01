@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView, DetailView
 from django.views.generic.list import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
+import numpy as np
 from .models import BatchSession, DefectsDetected
 from django.views.generic.edit import CreateView, DeleteView, UpdateView, FormView
 from .forms import BatchSessionForm, ProfileForm
@@ -11,6 +12,7 @@ from django.template.loader import render_to_string
 from django.db.models import Q
 from django.contrib.auth.models import User
 from django.contrib.auth import update_session_auth_hash
+from PIL import Image
 
 import cv2  
 from .object_detection.object import ObjectDetection
@@ -215,18 +217,28 @@ class ScanView(LoginRequiredMixin, TemplateView):
         
         scan_number = last_scan_number + 1
     
-        final_annotated_image = camera_obj.get_last_frame()
-        path = "./static/final_detected_images"
+        final_annotated_image = camera_obj.get_frames()
+        img_array = cv2.imdecode(np.frombuffer(final_annotated_image, dtype=np.uint8), cv2.IMREAD_COLOR)
+        
+        if img_array is None:
+            raise ValueError("Failed to decode image bytes")
+        
+        path = r".\static\final_detected_images"
+
+            
         if not os.path.exists(path):
             os.makedirs(path)
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         frame_name = f"{self.request.user}_{timestamp}_image.jpg"  # Change extension to .png if needed
+        
+
 
         # Full path to save the frame
         save_path = os.path.join(path, frame_name)
         # ======save frame
-        
+        success = cv2.imwrite(save_path, img_array)
+        print("Saved:", success, "Path:", save_path)
         # last_scan = BatchSession.query.order_by(BatchSession.scan_number.desc()).first()
         
         defects_detected = request.POST.getlist("defect")
@@ -251,8 +263,8 @@ class ScanView(LoginRequiredMixin, TemplateView):
             batch_id = self.kwargs["batch_id"]
             
         )
+        
         # save frame
-        cv2.imwrite(save_path, final_annotated_image)
         newScan.save()
         
         message="Data had been added"
@@ -310,9 +322,13 @@ class SummaryView(LoginRequiredMixin, TemplateView):
                     else:
                         # divide = defects_list_sum[key] // equivalent_values[key]
                         defects_list_sum[key] = value
+
+        # average
+        for defects in defects_list_sum:
+            defects_list_sum[defects] = round(defects_list_sum[defects]/2)
                         
         # equivalent full defect values
-        for key in defects_list_sum:    
+        for key in defects_list_sum:
             if key in equivalent_values:
                 divide = defects_list_sum[key] // equivalent_values[key][0]
                 defects_list_sum[key] = defects_list_sum[key], divide, equivalent_values[key][1]
@@ -388,6 +404,8 @@ class ProfileEditView(LoginRequiredMixin, FormView):
 # OBJECT DETECTION
 def check_camera(request):
     cap = cv2.VideoCapture(0)
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 2296)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 4080)
     if not cap.isOpened():
         # Release the camera if it was not opened
         cap.release()
@@ -396,7 +414,7 @@ def check_camera(request):
     cap.release()
     return JsonResponse({"success": "Camera not detected. Please check your device and permissions."})
 
-def video_feed(request):    
+def video_feed(request):
     vid_cam = cv2.VideoCapture(0)
     if not vid_cam.isOpened():
         # Release the camera if it was not opened

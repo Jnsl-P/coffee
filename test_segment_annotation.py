@@ -37,16 +37,21 @@
 # cap.release()
 # cv2.destroyAllWindows()
 
+from image import ImageLink
 
+import os
 import cv2
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator, colors
 
 # Load the YOLO segmentation model
-model = YOLO(r"c:\Users\user\OneDrive\Desktop\segmentation_models\segment7\real_train3\weights\last.pt")  # Replace with your trained model path
+
 
 # Load the image
-image_path = r"c:\Users\user\OneDrive\Downloads\484126623_9526123220777312_6157063580941475520_n.jpg"
+# Load the image
+imagelink = ImageLink() 
+model = imagelink.modeli
+image_path = imagelink.image_path
 im0 = cv2.imread(image_path)
 
 # Resize image while maintaining aspect ratio
@@ -62,8 +67,9 @@ results = model.predict(im0)
 # Annotate results
 annotator = Annotator(im0, line_width=0.5)
 names = model.model.names
-
+print(results[0].masks)
 if results[0].masks is not None:
+    print("HEREEEEE")
     clss = results[0].boxes.cls.cpu().tolist()
     masks = results[0].masks.xy
     for mask, cls in zip(masks, clss):
@@ -71,7 +77,6 @@ if results[0].masks is not None:
         # txt_color = annotator.get_txt_color(color)
         annotator.seg_bbox(mask=mask, mask_color=color)
 
-# Display the output image
-cv2.imshow("Instance Segmentation", im0)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# Save the output image
+filename = os.path.join(r"C:\Users\user\OneDrive\Desktop\New folder\prev", "test_segment.jpg")
+cv2.imwrite(filename, im0)
