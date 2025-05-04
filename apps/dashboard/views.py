@@ -1,9 +1,12 @@
+import ast
+import json
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView, DetailView
 from django.views.generic.list import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
 import numpy as np
+from ultralytics import settings
 from .models import BatchSession, DefectsDetected
 from django.views.generic.edit import CreateView, DeleteView, UpdateView, FormView
 from .forms import BatchSessionForm, ProfileForm
@@ -21,6 +24,9 @@ import base64
 import os
 from datetime import datetime
 from django.core.paginator import Paginator
+
+# global camera_obj
+# camera_obj = ObjectDetection()
 
 def index(request):
     if not request.user.is_authenticated:
@@ -254,14 +260,13 @@ class ScanView(LoginRequiredMixin, TemplateView):
         
         if not len(defects_array) > 0:
             defects_array = {"none": "none"}
-            
+
             
         newScan = DefectsDetected(
             scan_number=scan_number,
             defects_detected=defects_array,
             scanned_image=frame_name,
             batch_id = self.kwargs["batch_id"]
-            
         )
         
         # save frame
@@ -270,9 +275,146 @@ class ScanView(LoginRequiredMixin, TemplateView):
         message="Data had been added"
         return self.get(request, *args, **kwargs)
     
+class ScanUploadView(LoginRequiredMixin, TemplateView):
+    template_name = "dashboard/scan_upload_view.html"
+    success_url=reverse_lazy("scan")
+    
+    def post(self, request, *args, **kwargs):
+        # path = r".\static\final_detected_images"
+        # if not os.path.exists(path):
+        #     os.makedirs(path)
+        frames = []
+        final_annotated_images = []
+        
+        last_scan = DefectsDetected.objects.filter(batch_id=self.kwargs["batch_id"]).order_by('-scan_number').first()
+        
+        if last_scan:
+            last_scan_number = last_scan.scan_number
+        else:
+            last_scan_number = 0
+
+        scan_number = last_scan_number + 1
+
+        path = r".\static\final_detected_images"    
+        temp_path = r".\static\temp"
+        image_filenames = [f for f in os.listdir(temp_path) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+
+
+        for filename in image_filenames:
+            image_path = os.path.join(temp_path, filename)
+    
+            # Read using OpenCV
+            image = cv2.imread(image_path)
+        
+            save_path = os.path.join(path, filename)
+            
+            # ====== save frame ========
+            cv2.imwrite(save_path, image)
+            frames.append(filename)
+            
+            defects_detected = request.POST.getlist("defect")
+            defects_array = {}
+
+            # remove the image in temp
+            os.remove(image_path)
+                
+        # saving defects
+        if request.POST.get("defects_count"):
+           defects_array = request.POST.get("defects_count")
+           defects_array = ast.literal_eval(defects_array)
+                
+        newScan = DefectsDetected(
+            scan_number=scan_number,
+            defects_detected=defects_array,
+            scanned_image=frames[0],
+            batch_id = self.kwargs["batch_id"],
+            scanned_image2 = frames[1]
+        )
+        
+        # save frame
+        newScan.save()
+        
+        
+        message="Data had been added"
+        return self.get(request, *args, **kwargs)
+            
+    #     files = request.FILES.getlist('files')
+
+    #     # process starts
+    #     # for file in files:
+    #     image = Image.open(files[0]).convert('RGB')
+
+    #     # Convert to NumPy array
+    #     image_np = np.array(image)
+    
+    #     camera_obj.start_detects(image_np)
+    #     print("DONE")
+    #     return self.get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        batchSession = BatchSession.objects.get(batch_id=self.kwargs["batch_id"])
+        context["objects"] = batchSession
+        return context
+    
+
+def ScanUploadDetect(request, *args, **kwargs):
+    global camera_obj
+    camera_obj = ObjectDetection()
+    batch_id = kwargs.get("batch_id")
+
+    batchSession = BatchSession.objects.get(batch_id=batch_id)
+    
+    annotated_images = []
+
+    path = r".\static\temp"
+    if not os.path.exists(path):
+            os.makedirs(path)
+            
+    
+    if request.method == "POST":
+        files = request.FILES.getlist('files')
+        for idx, uploaded_file in enumerate(files):
+            # Reset pointer before multiple reads
+            uploaded_file.seek(0)
+            file_bytes = np.frombuffer(uploaded_file.read(), np.uint8)
+
+            # Decode using OpenCV
+            cv2_image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+
+            # run detection (replace with your logic)
+            cv2_image = camera_obj.start_detects(cv2_image)
+            
+            # save to tmp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            frame_name = f"{request.user}_{timestamp}_image.jpg"  # Change extension to .png if needed
+            
+            save_path = os.path.join(path, frame_name)
+            cv2.imwrite(save_path, cv2_image)
+
+            
+            # Convert to base64 for frontend
+            _, buffer = cv2.imencode('.jpg', cv2_image)
+            frame_b64 = base64.b64encode(buffer).decode('utf-8')
+            
+            # Store processed image
+            annotated_images.append(frame_b64)
+
+        return render(request, "dashboard/scan_upload_next.html", context={"annotated_images": annotated_images, "defects": camera_obj.defects, "objects": batchSession})
+
+        # return JsonResponse(data={"success":True, "captured_frame":frame_b64})
+    
 def start_capture(request):
     return render(request, "dashboard/partials/camera_buttons.html")
 
+class ScanOptionView(LoginRequiredMixin, TemplateView):
+    template_name = "dashboard/scan_option.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        batchSession = BatchSession.objects.get(batch_id=self.kwargs["batch_id"])
+        context["objects"] = batchSession   
+        return context
   
 # SUMMARY   
 class SummaryView(LoginRequiredMixin, TemplateView):
@@ -395,11 +537,6 @@ class ProfileEditView(LoginRequiredMixin, FormView):
         context = super().get_context_data(**kwargs)
         context["form"] = ProfileForm(instance=self.request.user)
         return context
-    
-    
-
-        
-    
 
 # OBJECT DETECTION
 def check_camera(request):
@@ -427,7 +564,6 @@ def video_feed(request):
     )
     
 def gen(camera):
-    global camera_obj
     camera_obj = ObjectDetection(camera)
     camera_obj.start()
     try:

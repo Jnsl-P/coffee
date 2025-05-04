@@ -18,7 +18,12 @@ urlpatterns = [
     path('dashboard/view/scan-delete/<int:defect_id>/', views.DeleteViewScans, name="delete_view_scans"),
     
     # Scan Camera Session
-    path('scan/<int:batch_id>/<str:title>/', views.ScanView.as_view(), name="scan"),
+    path('scan/<int:batch_id>/<str:title>/scan_option/', views.ScanOptionView.as_view(), name="scan_option"),
+        # upload
+    path('scan/<int:batch_id>/<str:title>/upload', views.ScanUploadView.as_view(), name="scan_upload"),
+    path('scan/<int:batch_id>/<str:title>/scanUploadDetect', views.ScanUploadDetect, name="scan_upload_detect"),
+        # camera    
+    path('scan/<int:batch_id>/<str:title>/camera', views.ScanView.as_view(), name="scan"),
     path('camera_buttons/', views.start_capture, name="start_capture"),
     
     # Summary

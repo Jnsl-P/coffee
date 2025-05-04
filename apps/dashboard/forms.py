@@ -39,7 +39,7 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ["first_name", "last_name", "email", "password", "reenter_password"]
-    
+
     # def save(self, commit=True):
     #     user_instance = get_object_or_404(User, id=sel)
     #     user_instance.first_name = self.cleaned_data['first_name']

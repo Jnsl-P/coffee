@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+
+{% block head_content %}
+    OPTION
+{% endblock head_content %}
+
+
+{% block content %}
+{% comment %} <br/>
+<div>
+    <a>Back</a>
+</div>
+<br/>
+<div>
+    <a href="{% url "scan_upload" objects.batch_id objects.title %}">Upload</a>
+</div>
+
+<div>
+    <a href="{% url "scan" objects.batch_id objects.title %}">Camera</a>
+</div> {% endcomment %}
+
+<div class="row container-fluid option-container text-center align-items-center" style="height: 100vh">
+    <div class="col">
+        <h1>ADD SCAN</h1>
+    </div>
+    <div class="col d-flex justify-content-center">
+        <div class="d-flex justify-content-center flex-column gap-3">
+            <button class="btn btn-success option_btn"><a class="text-decoration-none text-white" href="{% url "scan_upload" objects.batch_id objects.title %} ">UPLOAD</a></button>
+            <button class="btn btn-success option_btn"><a class="text-decoration-none text-white" href="{% url "scan" objects.batch_id objects.title %} ">CAMERA</a></button>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block script_content %}
+
+{% endblock script_content %}
+

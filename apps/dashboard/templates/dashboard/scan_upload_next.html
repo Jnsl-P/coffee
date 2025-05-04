@@ -1,0 +1,22 @@
+{% extends "layout.html" %} 
+{% load static %}
+
+{% block head_content %}
+    UPLOAD RESULT
+{% endblock head_content %}
+
+{% block content %}
+    
+    <form action="{% url "scan_upload" objects.batch_id objects.title %}" method="POST">
+        {% csrf_token %}
+        <input type="text" name="defects_count" value="{{ defects }}">
+        <img height="1000" src="data:image/jpeg;base64, {{ annotated_images.0 }}" id="annotated_image_container">
+        <img height="1000" src="data:image/jpeg;base64, {{ annotated_images.1 }}" id="annotated_image_container">
+
+        <input type='submit'>
+    </form>
+
+
+
+{% endblock content %}
+

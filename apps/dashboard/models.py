@@ -22,6 +22,7 @@ class DefectsDetected(models.Model):
     date_scanned = models.DateTimeField(default=now)
     defects_detected = models.JSONField(max_length=50)
     scanned_image = models.CharField(max_length=255)
+    scanned_image2 = models.CharField(max_length=255, null=True)
     batch = models.ForeignKey(BatchSession, on_delete=models.CASCADE)
     
     def __str__(self):

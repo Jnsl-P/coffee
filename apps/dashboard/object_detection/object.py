@@ -16,7 +16,7 @@ screenshot_path = os.path.join(screenshot_dir, "latest_screenshot.jpg")
 class ObjectDetection:
     global screenshot_dir,screenshot_path, model_segmentation, model
     
-    def __init__(self, video):
+    def __init__(self, video=None):
         self.defects = {}
         self.video = video
         self.thread = threading.Thread(target=self.capture,daemon=True)
@@ -32,9 +32,10 @@ class ObjectDetection:
         self.stop()
 
     def start(self):
-        self.start_capture = 1
-        self.ret, self.frame = self.video.read()
-        self.thread.start()
+        if self.video:
+            self.start_capture = 1
+            self.ret, self.frame = self.video.read()
+            self.thread.start()
 
     def capture(self):
         if self.video:
@@ -46,8 +47,8 @@ class ObjectDetection:
         ret, img = cv2.imencode('.jpg', self.frame)
         return img.tobytes()
 
-    def get_last_frame(self):
-        captured = self.start_detects()
+    def get_last_frame(self):   
+        captured = self.start_detects(image_frame=self.frame)
         return captured
     
         # # for custom percent confidence
@@ -78,8 +79,7 @@ class ObjectDetection:
         return enhanced_img
     
     def sharpness2(image):
-
-    # Define sharpening kernel
+        # Define sharpening kernel
         kernel = np.array([[0, -1, 0],
                         [-1, 5,-1],
                         [0, -1, 0]])
@@ -95,7 +95,7 @@ class ObjectDetection:
             nms_indices = nms_indices.flatten()
         return nms_indices   
 
-    def start_detects(self, confidence_threshold=0.2):
+    def start_detects(self, image_frame):
         try:
             # uncomment the following lines to test with an image file
             # ==================== test image ====================
@@ -108,7 +108,7 @@ class ObjectDetection:
 
 
             # ==================== YOLO Model Inference ====================
-
+            self.frame = image_frame
             labeling_infos = []
             # **** SEGMENTATION ****
             # segment_results = self.model_segmentation(sample_image)[0] 
@@ -193,14 +193,14 @@ class ObjectDetection:
             annotated_frame = self.frame
             
             for item in labeling_infos:
-                cv2.rectangle(annotated_frame, item["boxes"][0], item["boxes"][1], (0, 0, 0), 1)
-                cv2.putText(annotated_frame, item["text"], item["org_point"], cv2.FONT_HERSHEY_SIMPLEX,  0.2, (0, 0, 0), 1) 
-                # if item["text"] == "bad":
-                #     cv2.rectangle(annotated_frame, item["boxes"][0], item["boxes"][1], (0, 0, 0), 1)
-                #     cv2.putText(annotated_frame, "", item["org_point"], cv2.FONT_HERSHEY_SIMPLEX, 0.2, (0, 0, 0), 1)
-                # if item["text"] != "good" and item["text"] !=  "bad": 
-                #     cv2.rectangle(annotated_frame, item["boxes"][0], item["boxes"][1], (0, 0, 0), 1)
-                #     cv2.putText(annotated_frame, item["text"], item["org_point"], cv2.FONT_HERSHEY_SIMPLEX, 0.2, (0, 0, 0), 1)
+                # cv2.rectangle(annotated_frame, item["boxes"][0], item["boxes"][1], (0, 0, 0), 1)
+                # cv2.putText(annotated_frame, item["text"], item["org_point"], cv2.FONT_HERSHEY_SIMPLEX,  0.2, (0, 0, 0), 1) 
+                if item["text"] == "bad":
+                    cv2.rectangle(annotated_frame, item["boxes"][0], item["boxes"][1], (0, 0, 0), 1)
+                    cv2.putText(annotated_frame, "", item["org_point"], cv2.FONT_HERSHEY_SIMPLEX, 0.2, (0, 0, 0), 1)
+                if item["text"] != "good" and item["text"] !=  "bad": 
+                    cv2.rectangle(annotated_frame, item["boxes"][0], item["boxes"][1], (0, 0, 0), 1)
+                    cv2.putText(annotated_frame, item["text"], item["org_point"], cv2.FONT_HERSHEY_SIMPLEX, 0.2, (0, 0, 0), 1)
 
                 
             return annotated_frame
