@@ -155,7 +155,6 @@ for item in labeling_infos:
         cv2.rectangle(img, item["boxes"][0], item["boxes"][1], (0, 219, 51), 2)
         cv2.putText(img, "", item["org_point"], cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 219, 51), 2)
     if item["text"] != "good" and item["text"] !=  "bad": 
-        print(item["text"],"============")
         cv2.rectangle(img, item["boxes"][0], item["boxes"][1], (0, 219, 51), 2)
         cv2.putText(img, item["text"], item["org_point"], cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 219, 51), 2)
 

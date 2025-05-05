@@ -322,6 +322,9 @@ class ScanUploadView(LoginRequiredMixin, TemplateView):
         if request.POST.get("defects_count"):
            defects_array = request.POST.get("defects_count")
            defects_array = ast.literal_eval(defects_array)
+           
+        if not len(defects_array) > 0:
+            defects_array = {"none": "none"}
                 
         newScan = DefectsDetected(
             scan_number=scan_number,
@@ -334,22 +337,10 @@ class ScanUploadView(LoginRequiredMixin, TemplateView):
         # save frame
         newScan.save()
         
-        
+
         message="Data had been added"
         return self.get(request, *args, **kwargs)
-            
-    #     files = request.FILES.getlist('files')
-
-    #     # process starts
-    #     # for file in files:
-    #     image = Image.open(files[0]).convert('RGB')
-
-    #     # Convert to NumPy array
-    #     image_np = np.array(image)
-    
-    #     camera_obj.start_detects(image_np)
-    #     print("DONE")
-    #     return self.get(request, *args, **kwargs)
+        
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -387,7 +378,7 @@ def ScanUploadDetect(request, *args, **kwargs):
             
             # save to tmp
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            frame_name = f"{request.user}_{timestamp}_image.jpg"  # Change extension to .png if needed
+            frame_name = f"{request.user}_{timestamp}{idx}_image.jpg"  # Change extension to .png if needed
             
             save_path = os.path.join(path, frame_name)
             cv2.imwrite(save_path, cv2_image)
@@ -458,13 +449,19 @@ class SummaryView(LoginRequiredMixin, TemplateView):
         if all_defects:
             for defects in all_defects:
                 defects_detected = defects.defects_detected
+                
+                # loop through defects detected
                 for key, value in defects_detected.items():
+                    # sum up all defect count
                     if key in defects_list_sum: 
                         defects_list_sum[key] += value
                     else:
-                        # divide = defects_list_sum[key] // equivalent_values[key]
-                        defects_list_sum[key] = value
+                        if key != "none":
+                            defects_list_sum[key] = value
+                    
+                    
 
+        
         # average
         for defects in defects_list_sum:
             defects_list_sum[defects] = round(defects_list_sum[defects]/2)
@@ -474,6 +471,12 @@ class SummaryView(LoginRequiredMixin, TemplateView):
             if key in equivalent_values:
                 divide = defects_list_sum[key] // equivalent_values[key][0]
                 defects_list_sum[key] = defects_list_sum[key], divide, equivalent_values[key][1]
+        
+        # count full defect
+        full_defect_count = 0
+        for item in defects_list_sum:
+            if type(defects_list_sum[item]) == tuple:
+                full_defect_count += defects_list_sum[item][1]
         
         # separate primary defects
         primary_defects_list = {}
@@ -485,12 +488,27 @@ class SummaryView(LoginRequiredMixin, TemplateView):
         
         for key in keys_to_delete:
             del defects_list_sum[key]
-                    
+            
+        # GRADING
+        grading = None
+        if len(primary_defects_list) == 0 and full_defect_count < 5:
+            grading = "Specialty Grade"
+        
+        elif full_defect_count <= 8:
+            grading = "Premium Grade"
+            
+        elif full_defect_count <= 23:
+            grading = "Exchange Grade"
+        
+        else:
+            grading = "Off-grade"
         context["batch_id"] = batch_id
         context["batch_title"] = batch_title
         context["defects_list_sum"] = defects_list_sum
         context["primary_defects_list"] = primary_defects_list
+        context["grading"] = grading
         return context
+    
     
 # PROFILE VIEW
 class ProfileView(LoginRequiredMixin, TemplateView):
@@ -564,6 +582,7 @@ def video_feed(request):
     )
     
 def gen(camera):
+    global camera_obj
     camera_obj = ObjectDetection(camera)
     camera_obj.start()
     try:
@@ -584,7 +603,6 @@ def gen(camera):
         camera_obj.stop()
         
 def stop_object_py(request):
-    global camera_obj
     try:
         captured_frame = camera_obj.get_last_frame()
         print("SUCCESS UPDATING FRAME FILE")       

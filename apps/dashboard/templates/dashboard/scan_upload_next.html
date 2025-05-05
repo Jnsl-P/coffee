@@ -2,21 +2,94 @@
 {% load static %}
 
 {% block head_content %}
-    UPLOAD RESULT
+<div class="btn" onclick="goBack()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-arrow-left-circle" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5z"/>
+    </svg>
+</div>
 {% endblock head_content %}
 
 {% block content %}
     
-    <form action="{% url "scan_upload" objects.batch_id objects.title %}" method="POST">
+    {% comment %} <form action="{% url "scan_upload" objects.batch_id objects.title %}" method="POST">
         {% csrf_token %}
         <input type="text" name="defects_count" value="{{ defects }}">
         <img height="1000" src="data:image/jpeg;base64, {{ annotated_images.0 }}" id="annotated_image_container">
         <img height="1000" src="data:image/jpeg;base64, {{ annotated_images.1 }}" id="annotated_image_container">
 
         <input type='submit'>
+    </form> {% endcomment %}
+    <form action="{% url "scan_upload" objects.batch_id objects.title %}" method="POST">
+        {% csrf_token %}
+        <div class="row justify-content-center">
+            <div class="col  gap-2">
+                <div id="carouselExample" class="carousel slide border rounded-3">
+                    <div class="carousel-inner">
+                        <div class="carousel-item active">
+                            <a href="#"  onclick="openImage('{{ annotated_images.0 }}'); return false;">
+                                <img src="data:image/jpeg;base64, {{ annotated_images.0 }}" class="d-block w-100" alt="...">
+                            </a>
+                        </div>
+                        <div class="carousel-item">
+                            <a href="#"  onclick="openImage('{{ annotated_images.1 }}'); return false;">
+                                <img src="data:image/jpeg;base64, {{ annotated_images.1 }}" class="d-block w-100" alt="...">
+                            </a>
+                        </div>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="col results-container d-flex flex-column align-items-center gap-2 p-5" >
+                <h1>Defects Detected</h1>
+                <div class="upload_defects_results p-5" style=" border-radius: 15px; width:100%;">
+                    {% if defects %} 
+                        <input type="hidden" name="defects_count" value="{{ defects }}">
+                        {% for key, value in defects.items %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center result-list">
+                        <input type="text" name="defect" value="{{ key }}" />
+                        {{ key }}
+                        <span class="badge bg-dark text-white rounded-pill">
+                            {{ value }}
+                            <input type="text" name="" value="{{ value }}" />
+                        </span>
+                        </li>
+                        {% endfor %} 
+                    {% else %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <input
+                            type="text"
+                            name="defect"
+                            value="No Defects Detected!"
+                            class="d-none" />
+                        <span class="text-danger">No defects Detected!</span>
+                    </li>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-success">SUBMIT</button>
+            </div>
+        </div>
     </form>
-
-
 
 {% endblock content %}
 
+{% block script_content %}
+<script>
+    function openImage(base64Data) {
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = Array.from(byteCharacters, char => char.charCodeAt(0));
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/jpeg' });
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, '_blank');
+    }
+</script>
+{% endblock script_content %}

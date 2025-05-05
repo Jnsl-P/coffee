@@ -180,6 +180,39 @@ table.custom-bordered td:first-child {
   color: white;
 }
 
+.upload_container{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}
+
+.upload_scan_container{
+  background-color: var(--main-green-theme);
+  /* height: 50vh; */
+  /* width: 60vw;
+  max-width: 600px; */
+}
+
+.loading_screen{
+  position: absolute;
+  height: 100vh;
+  width: 100vw;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.1); /* semi-transparent background */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  
+}
+
+
+
+
+
+
 /* small */
 @media screen and (min-width: 576px) {
   .scan-img {

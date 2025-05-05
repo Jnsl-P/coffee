@@ -100,8 +100,12 @@
             <a
               target="_blank"
               href="{% static 'final_detected_images/' %}{{ defect.scanned_image }}"
-              >View Image</a
-            >
+              >View Image1</a>
+              <br>
+            <a
+              target="_blank"
+              href="{% static 'final_detected_images/' %}{{ defect.scanned_image2 }}"
+              >View Image2</a>
           </td>
         </tr>
         {% endfor %}

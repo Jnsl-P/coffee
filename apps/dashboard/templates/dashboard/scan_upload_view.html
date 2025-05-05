@@ -2,40 +2,52 @@
 {% load static %}
 
 {% block head_content %}
-    <div>
-        UPLOAD SCAN
-    </div>
+
+<div class="btn">
+    <a class="text-decoration-none" href="{% url "scan_option" objects.batch_id objects.title %}" style="color:black;" >
+        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-arrow-left-circle" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8m15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5z"/>
+        </svg>
+    </a>
+</div>
 {% endblock head_content %}
 
 {% block content %}
-<form action="{% url "scan_upload_detect" objects.batch_id objects.title %}" method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    <label for="files">Select files:</label>
-    <input type="file" id="files1" name="files"><br>
-    <input type="file" id="files2" name="files"><br><br>
-    <input type="submit">
-</form>
 
-<div class="spinner-border text-primary d-none" role="status">
-    <span class="visually-hidden">Loading...</span>
+<div id="loading_screen" class="d-none loading_screen d-flex flex-column justify-content-center align-items-center">
+    <div class="spinner-border " role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <br>
+    <h4>Processing....</h4>
 </div>
 
-
-<div>
-    {{ defects }}
+<div class="upload_container">
+    <form class="d-flex justify-content-center align-content-center" action="{% url "scan_upload_detect" objects.batch_id objects.title %}" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="border rounded-3 p-5 d-flex flex-column justify-content-evenly align-items-center gap-4 upload_scan_container">
+            <h2 class="text-white">UPLOAD 2 IMAGES</h2>
+            <div>
+                <h5 class="text-white">Image no. 1</h5>
+                <input type="file" id="files1" name="files" accept="image/*" class="p-2 px-3 bg-white border rounded-3">
+            </div>
+            <div>
+                <h5 class="text-white">Image no. 2</h5>
+                <input type="file" id="files1" name="files" accept="image/*" class="p-2 px-3 bg-white border rounded-3">
+            </div>
+            <div>
+                <button id="submit_upload_detect" type="submit" class="btn btn-secondary">Submit</button>
+            </div>
+        </div>
+    </form>
 </div>
+    
 {% endblock content %}
-
+    
 {% block script_content %}
 <script>
-    {% comment %} let annotated_image_container = $('#annotated_image_container')
-
-    async function processImages(){
-        let response = await fetch("{% url 'scan_upload_detect' %}");
-        let data = await response.json();
-        if (data.success) {
-            annotated_image_container.attr("src", `data:image/jpeg;base64, ${data.captured_frame}`)
-        }
-    } {% endcomment %}
+    $('#submit_upload_detect').on("click", function(){
+        $('#loading_screen').removeClass("d-none")
+    })
 </script>
 {% endblock script_content %}

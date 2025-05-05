@@ -183,7 +183,8 @@ class ObjectDetection:
                                     for i in c_nms:
                                         class_id = int(c_class_ids[i])
                                         label = self.model_classification.model.names[class_id]
-                                        label_text = f"{label} {round(c_confidences[i], 2)}"
+                                        # label_text = f"{label} {round(c_confidences[i], 2)}"
+                                        label_text = f"{label}"
                                         labeling_infos.append({
                                             "text": label_text,
                                             "org_point": (x, y - 10),
@@ -196,11 +197,11 @@ class ObjectDetection:
                 # cv2.rectangle(annotated_frame, item["boxes"][0], item["boxes"][1], (0, 0, 0), 1)
                 # cv2.putText(annotated_frame, item["text"], item["org_point"], cv2.FONT_HERSHEY_SIMPLEX,  0.2, (0, 0, 0), 1) 
                 if item["text"] == "bad":
-                    cv2.rectangle(annotated_frame, item["boxes"][0], item["boxes"][1], (0, 0, 0), 1)
-                    cv2.putText(annotated_frame, "", item["org_point"], cv2.FONT_HERSHEY_SIMPLEX, 0.2, (0, 0, 0), 1)
+                    cv2.rectangle(annotated_frame, item["boxes"][0], item["boxes"][1], (0, 0, 255), 1)
+                    cv2.putText(annotated_frame, "", item["org_point"], cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
                 if item["text"] != "good" and item["text"] !=  "bad": 
                     cv2.rectangle(annotated_frame, item["boxes"][0], item["boxes"][1], (0, 0, 0), 1)
-                    cv2.putText(annotated_frame, item["text"], item["org_point"], cv2.FONT_HERSHEY_SIMPLEX, 0.2, (0, 0, 0), 1)
+                    cv2.putText(annotated_frame, item["text"], item["org_point"], cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
 
                 
             return annotated_frame

@@ -51,8 +51,13 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      function goBack() {
+        window.history.back(); // or use history.go(-1);
+      }
+    </script>
     {% block script_content %} 
-      
+    
     {% endblock script_content %}
   </body>
 </html>

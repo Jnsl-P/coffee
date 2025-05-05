@@ -22,28 +22,13 @@
     </a>
   </div>
   <div class="overflow-auto">
-    {% comment %} <table class="table flex-wrap text-wrap table-summary text-center">
-      <h2>Summary - Category 1 Defects</h2>
-      <thead>
-        <tr>
-          <th scope="col">Defects Name</th>
-          <th scope="col">Defect Count</th>
-          <th scope="col">Full Defects</th>
-        </tr>
-      </thead>
-      <tbody style="border-top: 0" id="scan_body_container">
-        {% if primary_defects_list %}
-          {% for defect, value in primary_defects_list.items %}
-          <tr>
-            <td scope="row " >{{ defect|title  }} ({{ value.2 }})</td>
-            <td>{{ value.0 }}</td>
-            <td>{{ value.1 }}</td>
-          </tr>
-          {% endfor %}
-        {% endif %}
-      </tbody>
-    </table> {% endcomment %}
-
+    <div>
+      <br>
+      <h4>Grading:</h4>
+      <p style="font-size: 1.5rem;">{{ grading }}</p>
+    </div>
+    <br>
+    {% comment %} primary {% endcomment %}
     <table class="table flex-wrap text-wrap table-summary text-center">
       <h2>Summary - Category 1 Defects</h2>
       <thead>
@@ -57,7 +42,7 @@
       {% if primary_defects_list %}
         {% for defect, value in primary_defects_list.items %}
         <tr>
-          <td scope="row " >{{ defect|title  }} ({{ value.2 }})</td>
+          <td scope="row" >{{ defect|title  }} ({{ value.2 }})</td>
           <td>{{ value.0 }}</td>
           <td>{{ value.1 }}</td>
         </tr>
@@ -66,6 +51,7 @@
       </tbody>
     </table>
 
+    {% comment %} secondary {% endcomment %}
     <table class="table flex-wrap text-wrap table-summary text-center">
       <h2>Summary - Category 2 Defects</h2>
       <thead>
