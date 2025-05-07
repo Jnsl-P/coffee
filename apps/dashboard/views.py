@@ -149,7 +149,7 @@ class AddSession(LoginRequiredMixin, CreateView):
         batch = form.save(commit=False)
         batch.user = self.request.user
         batch.save()
-        self.success_url = reverse_lazy("scan", kwargs={"batch_id":batch.batch_id, "title": batch.title})
+        self.success_url = reverse_lazy("scan_option", kwargs={"batch_id":batch.batch_id, "title": batch.title})
         return super().form_valid(form)
 
 # SCAN LIST
