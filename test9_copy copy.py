@@ -40,7 +40,7 @@ labeling_infos = []
 
 for box in detections.boxes:
     confidence = float(box.conf)  # Confidence score
-    if confidence >= 0.5:  # Filter by confidence threshold
+    if confidence >= 0.8:  # Filter by confidence threshold
         class_id = int(box.cls)  # Class ID
         x1, y1, x2, y2 = map(int, box.xyxy[0])  # Bounding box coordinates
         boxes.append([x1, y1, x2 - x1, y2 - y1])  # OpenCV expects width and height format
@@ -87,7 +87,7 @@ if len(nms_indices) > 0:
     
         for box_gb in r_classify_good_bad[0].boxes:
             conf = float(box_gb.conf)
-            if conf >= 0.5:
+            if conf >= 0.4:
                 x1g, y1g, x2g, y2g = map(int, box_gb.xyxy[0])
                 gb_boxes.append([x1g, y1g, x2g - x1g, y2g - y1g])  # (x, y, w, h)
                 gb_confidences.append(conf)
@@ -114,11 +114,9 @@ if len(nms_indices) > 0:
                 if label_gb != "good":
                     r_classify_def = m_classify_ii(iso_crop)
 
-                    
-
                     for box_d in r_classify_def[0].boxes:
                         conf_d = float(box_d.conf)
-                        if conf_d >= 0.5:                     # your defect threshold
+                        if conf_d >= 0.0:                     # your defect threshold
                             xd1, yd1, xd2, yd2 = map(int, box_d.xyxy[0])
                             df_boxes.append([xd1, yd1, xd2 - xd1, yd2 - yd1])
                             df_confidences.append(conf_d)

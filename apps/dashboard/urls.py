@@ -23,7 +23,8 @@ urlpatterns = [
     path('scan/<int:batch_id>/<str:title>/upload', views.ScanUploadView.as_view(), name="scan_upload"),
     path('scan/<int:batch_id>/<str:title>/scanUploadDetect', views.ScanUploadDetect, name="scan_upload_detect"),
         # camera    
-    path('scan/<int:batch_id>/<str:title>/camera', views.ScanView.as_view(), name="scan"),
+    path('scan/<int:batch_id>/<str:title>/camera/<int:scan_number>', views.ScanView.as_view(), name="scan"),
+    path('scan/<int:batch_id>/<str:title>/camera/next', views.CameraNext.as_view(), name="camera_next"),
     path('camera_buttons/', views.start_capture, name="start_capture"),
     
     # Summary

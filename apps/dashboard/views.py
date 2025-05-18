@@ -1,4 +1,5 @@
 import ast
+from collections import defaultdict
 import json
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
@@ -10,7 +11,7 @@ from ultralytics import settings
 from .models import BatchSession, DefectsDetected
 from django.views.generic.edit import CreateView, DeleteView, UpdateView, FormView
 from .forms import BatchSessionForm, ProfileForm
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.template.loader import render_to_string
 from django.db.models import Q
 from django.contrib.auth.models import User
@@ -204,18 +205,51 @@ def DeleteViewScans(request, defect_id):
 # START CAMERA SESSION
 class ScanView(LoginRequiredMixin, TemplateView):
     template_name = "dashboard/scan_view.html"
-    success_url=reverse_lazy("scan")
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         batchSession = BatchSession.objects.get(batch_id=self.kwargs["batch_id"])
         context["objects"] = batchSession
         context["scan_number"] = DefectsDetected.objects.filter(batch=batchSession).order_by("-date_scanned").first()
+    
+        defects_detected = self.request.POST.getlist("defect")
+        defects_array = {}
+    
+        if self.request.POST.get("defects_count"):
+            defects_count = self.request.POST.getlist("defects_count")
+            defects_count = list(map(int, defects_count))
+            
+            for index, defect in enumerate(defects_detected):
+                # insert in dict
+                defects_array[defect] = defects_count[index]
+        
+        if not len(defects_array) > 0:
+            defects_array = {"none": "none"}
+        context["first_defects"] = defects_array
         return context
     
+    def get_success_url(self):
+        batch = get_object_or_404(BatchSession, batch_id=self.kwargs["batch_id"])
+
+        # session scan ends
+        if self.request.method == "POST" and self.kwargs["scan_number"] == 2:
+            return reverse('camera_next', kwargs={
+        "batch_id": batch.batch_id,
+        "title": batch.title
+    })
+
+        if self.request.method == "POST" and self.kwargs["scan_number"] == 1:
+            next_scan_number = 2
+        
+            return reverse_lazy('scan', kwargs={
+                "batch_id": batch.batch_id,
+                "title": batch.title,
+                "scan_number": next_scan_number
+            })
+        
     def post(self, request, *args, **kwargs):
         last_scan = DefectsDetected.objects.filter(batch_id=self.kwargs["batch_id"]).order_by('-scan_number').first()
-
+        
         if last_scan:
             last_scan_number = last_scan.scan_number
         else:
@@ -229,7 +263,7 @@ class ScanView(LoginRequiredMixin, TemplateView):
         if img_array is None:
             raise ValueError("Failed to decode image bytes")
         
-        path = r".\static\final_detected_images"
+        path = r".\static\temp"
 
             
         if not os.path.exists(path):
@@ -237,21 +271,18 @@ class ScanView(LoginRequiredMixin, TemplateView):
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         frame_name = f"{self.request.user}_{timestamp}_image.jpg"  # Change extension to .png if needed
-        
-
 
         # Full path to save the frame
         save_path = os.path.join(path, frame_name)
+        
         # ======save frame
         success = cv2.imwrite(save_path, img_array)
-        print("Saved:", success, "Path:", save_path)
-        # last_scan = BatchSession.query.order_by(BatchSession.scan_number.desc()).first()
         
-        defects_detected = request.POST.getlist("defect")
+        defects_detected = self.request.POST.getlist("defect")
         defects_array = {}
-        
-        if request.POST.get("defects_count"):
-            defects_count = request.POST.getlist("defects_count")
+    
+        if self.request.POST.get("defects_count"):
+            defects_count = self.request.POST.getlist("defects_count")
             defects_count = list(map(int, defects_count))
             
             for index, defect in enumerate(defects_detected):
@@ -260,24 +291,121 @@ class ScanView(LoginRequiredMixin, TemplateView):
         
         if not len(defects_array) > 0:
             defects_array = {"none": "none"}
-
+        
+        with open("static/temp_defects/defects.txt", "a") as file:
+            for defect, count in defects_array.items():
+                file.write(f"{defect}: {count}\n")
             
+        message="Data had been added"
+        return redirect(self.get_success_url())
+    
+class CameraNext(LoginRequiredMixin, TemplateView):
+    template_name = 'dashboard/camera_next.html'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        frames = []
+        
+        temp_path = r".\static\temp"
+        image_filenames = [f for f in os.listdir(temp_path) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+
+        for filename in image_filenames:
+            image_path = os.path.join(temp_path, filename)
+            
+            # store files in variable
+            frames.append(filename)
+
+            result = []            
+            with open(r".\static\temp_defects\defects.txt", "r") as file:
+                for line in file:
+                    line = line.strip()
+                    if line:  
+                        key, value = line.split(":")
+                        result.append({key.strip(): value.strip()})
+  
+        combined = defaultdict(int)
+
+        for d in result:
+            for key, value in d.items():
+                if not key == "none":
+                    combined[key] += int(value)
+
+        # Convert back to normal dict if needed
+        result = dict(combined)
+        print("RESULTS", result)
+        context["frames"] = frames
+        context["defects"] = result
+        return context
+
+    def post(self, *args, **kwargs):
+        frames = []
+        final_annotated_images = []
+        
+        last_scan = DefectsDetected.objects.filter(batch_id=self.kwargs["batch_id"]).order_by('-scan_number').first()
+        
+        if last_scan:
+            last_scan_number = last_scan.scan_number
+        else:
+            last_scan_number = 0
+
+        scan_number = last_scan_number + 1
+
+        path = r".\static\final_detected_images" 
+        temp_path = r".\static\temp"
+        image_filenames = [f for f in os.listdir(temp_path) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
+
+
+        for filename in image_filenames:
+            image_path = os.path.join(temp_path, filename)
+    
+            # Read using OpenCV
+            image = cv2.imread(image_path)
+        
+            save_path = os.path.join(path, filename)
+            
+            # ====== save frame ========
+            cv2.imwrite(save_path, image)
+            frames.append(filename)
+            
+            defects_detected = self.request.POST.getlist("defect")
+            defects_array = {}
+
+            # remove the image in temp
+            os.remove(image_path)
+            
+            # remove in txt file
+            with open("./static/temp_defects/defects.txt", "w") as file:
+                pass 
+                
+        # saving defects
+        if self.request.POST.get("defects_count"):
+           defects_array = self.request.POST.get("defects_count")
+           defects_array = ast.literal_eval(defects_array)
+           
+        if not len(defects_array) > 0:
+            defects_array = {"none": "none"}
+                
         newScan = DefectsDetected(
             scan_number=scan_number,
             defects_detected=defects_array,
-            scanned_image=frame_name,
-            batch_id = self.kwargs["batch_id"]
+            scanned_image=frames[0],
+            batch_id = self.kwargs["batch_id"],
+            scanned_image2 = frames[1]
         )
         
         # save frame
         newScan.save()
-        
+
         message="Data had been added"
-        return self.get(request, *args, **kwargs)
-    
+        return redirect(self.get_success_url())
+        
+    def get_success_url(self):
+        batch = get_object_or_404(BatchSession, batch_id=self.kwargs["batch_id"])
+        return reverse_lazy('view_scans', kwargs={'batch_id': batch.batch_id, 'title': batch.title})
+            
 class ScanUploadView(LoginRequiredMixin, TemplateView):
     template_name = "dashboard/scan_upload_view.html"
-    success_url=reverse_lazy("scan")
+    # success_url=reverse_lazy("scan")
     
     def post(self, request, *args, **kwargs):
         # path = r".\static\final_detected_images"
@@ -295,7 +423,7 @@ class ScanUploadView(LoginRequiredMixin, TemplateView):
 
         scan_number = last_scan_number + 1
 
-        path = r".\static\final_detected_images"    
+        path = r".\static\final_detected_images" 
         temp_path = r".\static\temp"
         image_filenames = [f for f in os.listdir(temp_path) if f.lower().endswith(('.jpg', '.jpeg', '.png'))]
 
@@ -336,7 +464,6 @@ class ScanUploadView(LoginRequiredMixin, TemplateView):
         
         # save frame
         newScan.save()
-        
 
         message="Data had been added"
         return self.get(request, *args, **kwargs)
@@ -348,7 +475,6 @@ class ScanUploadView(LoginRequiredMixin, TemplateView):
         context["objects"] = batchSession
         return context
     
-
 def ScanUploadDetect(request, *args, **kwargs):
     global camera_obj
     camera_obj = ObjectDetection()
@@ -361,7 +487,6 @@ def ScanUploadDetect(request, *args, **kwargs):
     path = r".\static\temp"
     if not os.path.exists(path):
             os.makedirs(path)
-            
     
     if request.method == "POST":
         files = request.FILES.getlist('files')
@@ -407,7 +532,7 @@ class ScanOptionView(LoginRequiredMixin, TemplateView):
         context["objects"] = batchSession   
         return context
   
-# SUMMARY   
+# SUMMARY
 class SummaryView(LoginRequiredMixin, TemplateView):
     template_name = "dashboard/summary_view.html"
     
@@ -431,7 +556,7 @@ class SummaryView(LoginRequiredMixin, TemplateView):
             ,"dried cherry":[1, "1:1"]
             ,"fungus":[1, "1:1"]
             ,"foreign matter":[1, "1:1"]
-            ,"severe insect Damage":[5, "5:1"]
+            ,"severe insect":[5, "5:1"]
             ,"partial black":[3, "3:1"]
             ,"partial sour":[3, "3:1"]
             ,"parchment":[5, "5:1"]
@@ -441,7 +566,7 @@ class SummaryView(LoginRequiredMixin, TemplateView):
             ,"shell":[5, "5:1"]
             ,"broken":[5, "5:1"]
             ,"husk":[5, "5:1"]
-            ,"slight insect damage":[10, "10:1"]
+            ,"slight insect":[10, "10:1"]
             }
         
         defects_list_sum = {}

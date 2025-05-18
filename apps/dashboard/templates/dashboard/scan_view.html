@@ -43,7 +43,7 @@
           Scan no.: {{ scan_number.scan_number|add:"1" }}
         </h2>
         <h1 class="result-title">Results / Outcomes</h1>
-
+        
         <div>
           <label for="" class="form-label">Farm:</label>
           <input type="text" class="form-control fw-bold"
@@ -55,7 +55,7 @@
         <div>
           <label for="" class="form-label">Bean type:</label>
           <input type="text" class="form-control fw-bold"
-          value="{{objects.bean_type.upper }}" readonly />
+          value="{{objects.bean_type.upper }}" readonly />    
         </div>
 
         <br />
@@ -64,23 +64,6 @@
         <div>
           <label for="" class="form-label">Defects:</label>
           <br />
-          
-          {% comment %} <label for="confidence_input" class="form-label"
-            >confidence threshold: <span id="confidence_display"></span
-          ></label>
-          <div class="d-flex justify-content-between gap-4">
-            <span class="text-white">0</span>
-            <input
-              type="range"
-              class="form-range"
-              min="0"
-              max="100"
-              id="confidence_input"
-              name="confidence_input"
-              value="50"/>
-            <span class="text-white">100</span>
-          </div> {% endcomment %}
-
           <ul class="list-group" id="defects_list"></ul>
         </div>
 
@@ -89,7 +72,7 @@
           Start Camera
         </div>
         <div class="row gap-lg-2 gap-sm-1 flex-wrap-reverse align-items-center" id="stopAndCaptureBtn">
-          <a href="{% url "scan" objects.batch_id objects.title %}" class="px-1">
+          <a href="{% url "scan" objects.batch_id objects.title 1%}" class="px-1">
             <div
               class="my-3 my-2 p-3 py-2 px-5 btn btn-danger rounded-pill d-none"
               id="cancelStopBtn">

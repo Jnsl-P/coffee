@@ -30,9 +30,17 @@ if results[0].boxes is not None:
     confs = results[0].boxes.conf.cpu().tolist()
 
     for box, cls, conf in zip(boxes, clss, confs):
-        if conf > 0.8:
-            # label = f"{names[int(cls)]} {conf:.2f}"
-            annotator.box_label(box, color=colors(int(cls), True))
+        # if names[int(cls)] == "good":    
+        #     if conf > 0.35:
+        #         label = f"{names[int(cls)]} {conf:.2f}"
+        #         annotator.box_label(box, label, color=colors(int(cls), True))
+        # if names[int(cls)] == "bad":    
+        #     if conf > 0.35:
+        #         label = f"{names[int(cls)]} {conf:.2f}"
+        #         annotator.box_label(box, label, color=colors(int(cls), True))
+        if conf > 0.35:
+            label = f"{names[int(cls)]} {conf:.2f}"
+            annotator.box_label(box, label, color=colors(int(cls), True))
 
 # Display the output image
 filename = os.path.join(r"C:\Users\user\OneDrive\Desktop\New folder\prev", f"test_segment.jpg")

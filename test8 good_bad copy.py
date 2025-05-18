@@ -29,7 +29,7 @@ detections = classify[0]  # First result corresponds to the current frame/image
 # Extract bounding boxes, confidence scores, and class IDs
 boxes = []
 boxes2 = []
-confidences = []
+confidences = []    
 class_ids = []
 
 labeling_infos = []
@@ -118,7 +118,7 @@ if len(nms_indices) > 0:
                 labeling_infos.append({"text": label_text, "org_point": (x, y - 10), "boxes": [(x, y), (x + w, y + h)]})
 
                 conf = gb_confidences[j]
-                filename = os.path.join(path, f"iso_{idx}_{label_text}.jpg")
+                filename = os.path.join(path, f"isoo_{idx}_{label_text}.jpg")
                 cv2.imwrite(filename, iso_crop)
 
         # UNCOMMENT======================================

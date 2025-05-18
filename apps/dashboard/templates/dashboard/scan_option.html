@@ -32,7 +32,7 @@
     <div class="col d-flex justify-content-center">
         <div class="d-flex justify-content-center flex-column gap-3">
             <button class="btn btn-success option_btn"><a class="text-decoration-none text-white" href="{% url "scan_upload" objects.batch_id objects.title %} ">UPLOAD</a></button>
-            <button class="btn btn-success option_btn"><a class="text-decoration-none text-white" href="{% url "scan" objects.batch_id objects.title %} ">CAMERA</a></button>
+            <button class="btn btn-success option_btn"><a class="text-decoration-none text-white" href="{% url "scan" objects.batch_id objects.title 1%}">CAMERA</a></button>
         </div>
     </div>
 </div>
