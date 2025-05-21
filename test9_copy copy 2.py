@@ -81,7 +81,7 @@ focused = np.where(mask.any(axis=2, keepdims=True), mask, blurred)
 
 # defect detect
 df_result = m_classifyiii(focused)
-annotator = Annotator(focused.copy(), line_width=2)  # Use focused image, not img
+annotator = Annotator(img, line_width=2)  # Use focused image, not img
 names = m_classifyiii.model.names
 
 if df_result[0].boxes is not None:
@@ -90,7 +90,7 @@ if df_result[0].boxes is not None:
     confs = df_result[0].boxes.conf.cpu().tolist()
 
     for box, cls, conf in zip(boxes, clss, confs):
-        if  conf > 0.35:
+        if  conf > 0:
             label = f"{names[int(cls)]} {conf:.2f}"
             annotator.box_label(box, label, color=colors(int(cls), True))
 

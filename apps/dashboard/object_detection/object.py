@@ -5,9 +5,14 @@ import os
 import threading
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator, colors
+import torchvision.ops as ops
+import torch
 
-# path = r"apps\dashboard\object_detection\yolo11n-seg.pt"
-# model = YOLO(path)  # Load a pretrained model (e.g., yolov8n.pt, yolov8s.pt, etc.)
+from ultralytics import YOLO
+import os
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 screenshot_dir = "./static/images/"
 os.makedirs(screenshot_dir, exist_ok=True)  # Ensure the directory exists
@@ -22,9 +27,9 @@ class ObjectDetection:
         self.thread = threading.Thread(target=self.capture,daemon=True)
         self.start_capture = 0
         
-        self.model_segmentation = YOLO(r"c:\Users\user\OneDrive\Desktop\segmentation_models\segment11\train\weights\last.pt")
-        self.model_good_bad = YOLO(r"c:\Users\user\OneDrive\Desktop\good_bad_bean_models\b_4\train\weights\last.pt")
-        self.model_classification = YOLO(r"c:\Users\user\OneDrive\Desktop\model_versions\a_2\train\weights\last.pt")
+        # self.model_segmentation = YOLO(r"c:\Users\user\OneDrive\Desktop\segmentation_models\segment11\train\weights\last.pt")
+        self.model_good_bad = YOLO(r'C:\Users\user\OneDrive\Desktop\coffee_test\coffee\apps\dashboard\object_detection\models\new_model\1_good_bad.pt')
+        self.model_classification = YOLO(r'C:\Users\user\OneDrive\Desktop\coffee_test\coffee\apps\dashboard\object_detection\models\new_model\2_defect_detection.pt')
 
     def __del__(self):
         self.video.release()
@@ -50,10 +55,6 @@ class ObjectDetection:
     def get_last_frame(self):   
         captured = self.start_detects(image_frame=self.frame)
         return captured
-    
-        # # for custom percent confidence
-        # self.final_annotated_image = captured
-        # return self.final_annotated_image
     
     def unsharp_mask(image, sigma=1.0, strength=1.5, kernel_size=(5, 5)):
         # Apply Gaussian blur with specified kernel size
@@ -94,121 +95,73 @@ class ObjectDetection:
         if len(nms_indices) > 0:
             nms_indices = nms_indices.flatten()
         return nms_indices   
-
+    
     def start_detects(self, image_frame):
         try:
-            # uncomment the following lines to test with an image file
-            # ==================== test image ====================
-            
-            # image_name = r"c:\Users\user\OneDrive\Downloads\116af4ec-8c06-4533-858a-3e60fabe0e61.jpg"
-            # imagepath = "apps/dashboard/object_detection/" + image_name
-            # sample_image = cv2.imread(image_name)
-            
-            # ==================== test image ====================
-
-
             # ==================== YOLO Model Inference ====================
             self.frame = image_frame
             labeling_infos = []
+
             # **** SEGMENTATION ****
-            # segment_results = self.model_segmentation(sample_image)[0] 
-            segment_results = self.model_segmentation(self.frame)[0] 
+            segment_results = self.model_good_bad(self.frame)[0] 
             boxes = []
             confidences = []
+            boxes_xyxy = []  # [x1, y1, x2, y2]
+            scores = []
+            class_ids = []
             
             for box in segment_results.boxes:
                 confidence = float(box.conf)  
-                if confidence >= 0.9:  # Filter by confidence threshold
-                    x1, y1, x2, y2 = map(int, box.xyxy[0])  # Bounding box coordinates
-                    boxes.append([x1, y1, x2 - x1, y2 - y1])  # OpenCV expects width and height format
-                    confidences.append(confidence)
+                if confidence >= 0.4:  # Filter by confidence threshold
+                    x1, y1, x2, y2 = map(float, box.xyxy[0])
+                    boxes_xyxy.append([x1, y1, x2, y2])
+                    scores.append(confidence)
+                    class_ids.append(int(box.cls))
                     
             # Apply NMS (Non-Maximum Suppression) 
-            segment_nms_indices = self.apply_nms(boxes, confidences)
+            # segment_nms_indices = self.apply_nms(boxes, confidences)
             
-            # Draw the bounding boxes for the filtered indices
-            for idx, i in enumerate(segment_nms_indices):
-                x, y, w, h = boxes[i]
-                            
-                b_mask = np.zeros_like(self.frame[:, :, 0], dtype=np.uint8)
+            boxes_tensor = torch.tensor(boxes_xyxy)
+            scores_tensor = torch.tensor(scores)
+            nms_threshold = 0.4
+            keep_indices = ops.nms(boxes_tensor, scores_tensor, nms_threshold)
+            
+            blurred = cv2.GaussianBlur(self.frame, (71, 71), 0)
+            mask = np.zeros_like(self.frame)
+            
+            for idx in keep_indices:
+                x1, y1, x2, y2 = map(int, boxes_tensor[idx])  # Use detection box
+                cls_id = class_ids[idx]
+                label = self.model_good_bad.model.names[cls_id] 
+                conf = scores[idx]
                 
-                cv2.rectangle(b_mask, (x, y), ((x + w), (h + y)), 255, -1)
-                isolated = cv2.bitwise_and(self.frame, self.frame, mask=b_mask)
-                
-                # Crop image to object region
-                iso_crop = isolated[y:(h + y), x:(x + w)]
-                
-                # resize isolated img
-                target_width = 640
-                h, w = iso_crop.shape[:2]
-                aspect_ratio = h / w
-                new_height = int(target_width * aspect_ratio)
-                iso_crop = cv2.resize(iso_crop, (target_width, new_height))
-                
-                # iso_crop = self.unsharp_mask(iso_crop, sigma=3.0, strength=5.5, kernel_size=(7, 7))
-                # iso_crop = unsharp_mask(iso_crop, sigma=3.0, strength=5.5, kernel_size=(7, 7))
-                
-                # ======== CLASSIFY GOOD OR BAD BEAN ========
-                
-                good_bad_output = self.model_good_bad(iso_crop)[0]
+                if label == "bad":
+                    # KEEP THIS — copies only "bad" beans from original image
+                    mask[y1:y2, x1:x2] = self.frame[y1:y2, x1:x2]
+            
+            # Merge: keep "bad" bean areas from original image, blur the rest
+            focused = np.where(mask.any(axis=2, keepdims=True), mask, blurred)
 
-                if hasattr(good_bad_output, "boxes") and len(good_bad_output.boxes) > 0:
-                    top_box = good_bad_output.boxes[0]
-                    if float(top_box.conf) > 0.5:
-                        gb_label = self.model_good_bad.model.names[int(top_box.cls)]
-                        x, y, w, h = boxes[i]
+            # defect detect
+            df_result = self.model_classification(focused)
+            annotator = Annotator(self.frame, line_width=2)  # Use focused image, not img
+            names = self.model_classification.model.names
+
+            if df_result[0].boxes is not None:
+                boxes = df_result[0].boxes.xyxy.cpu().tolist()
+                clss = df_result[0].boxes.cls.cpu().tolist()
+                confs = df_result[0].boxes.conf.cpu().tolist()
+
+                for box, cls, conf in zip(boxes, clss, confs):
+                    if  conf > 0.3:
+                        label = f"{names[int(cls)]}"
+                        annotator.box_label(box, label, color=colors(int(cls), True))
+                        self.defects[label] = self.defects.get(label, 0) + 1
                         
-                        labeling_infos.append({"text": gb_label, "org_point": (x, y - 10), "boxes": [(x, y), (x + w, y + h)]})
-                
-                        # ======== CLASSIFY TYPES OF DEFECT ========
-                        if gb_label != "good":
-                            classification_results = self.model_classification(iso_crop)
-
-                            c_boxes = []
-                            c_confidences = []
-                            c_class_ids = []
-
-                            if hasattr(classification_results[0], "boxes") and len(classification_results[0].boxes) > 0:
-                                for c_box in classification_results[0].boxes:
-                                    confidence = float(c_box.conf)
-                                    if confidence > 0.6:
-                                        class_id = int(c_box.cls)
-                                        x1, y1, x2, y2 = map(int, c_box.xyxy[0])
-                                        c_boxes.append([x1, y1, x2 - x1, y2 - y1])
-                                        c_confidences.append(confidence)
-                                        c_class_ids.append(class_id)
-
-                                if len(c_boxes) > 0:
-                                    c_nms = self.apply_nms(c_boxes, c_confidences)
-                                    for i in c_nms:
-                                        class_id = int(c_class_ids[i])
-                                        label = self.model_classification.model.names[class_id]
-                                        # label_text = f"{label} {round(c_confidences[i], 2)}"
-                                        label_text = f"{label}"
-                                        labeling_infos.append({
-                                            "text": label_text,
-                                            "org_point": (x, y - 10),
-                                            "boxes": [(x, y), (x + w, y + h)]
-                                        })
-                                        self.defects[label] = self.defects.get(label, 0) +1
-            annotated_frame = self.frame
-            
-            for item in labeling_infos:
-                # cv2.rectangle(annotated_frame, item["boxes"][0], item["boxes"][1], (0, 0, 0), 1)
-                # cv2.putText(annotated_frame, item["text"], item["org_point"], cv2.FONT_HERSHEY_SIMPLEX,  0.2, (0, 0, 0), 1) 
-                if item["text"] == "bad":
-                    cv2.rectangle(annotated_frame, item["boxes"][0], item["boxes"][1], (0, 0, 255), 1)
-                    cv2.putText(annotated_frame, "", item["org_point"], cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-                if item["text"] != "good" and item["text"] !=  "bad": 
-                    cv2.rectangle(annotated_frame, item["boxes"][0], item["boxes"][1], (0, 0, 0), 1)
-                    cv2.putText(annotated_frame, item["text"], item["org_point"], cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
-
-                
+            annotated_frame = annotator.result()                
             return annotated_frame
         except Exception as err:
             print("ERROR:", err)
-            
-
          
     def stop(self):
         print("VIDEO RELEASE STHREAD STOP")

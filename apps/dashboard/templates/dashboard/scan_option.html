@@ -25,14 +25,17 @@
     <a href="{% url "scan" objects.batch_id objects.title %}">Camera</a>
 </div> {% endcomment %}
 <br>
-<div class="row-cols-1 container-fluid option-container text-center align-items-center" style="height: 100vh">
-    <div class="col">
-        <h1>ADD SCAN</h1>
-    </div>
-    <div class="col d-flex justify-content-center">
-        <div class="d-flex justify-content-center flex-column gap-3">
-            <button class="btn btn-success option_btn"><a class="text-decoration-none text-white" href="{% url "scan_upload" objects.batch_id objects.title %} ">UPLOAD</a></button>
-            <button class="btn btn-success option_btn"><a class="text-decoration-none text-white" href="{% url "scan" objects.batch_id objects.title 1%}">CAMERA</a></button>
+<div class="">
+    <div class="text-center p-5 option-container" >
+        <div class="">
+            <h1 class="fs-2">ADD SCAN</h1>
+        </div>
+        <br>
+        <div class=" d-flex justify-content-center">
+            <div class="d-flex justify-content-center flex-column gap-3">
+                <button class="btn btn-success option_btn px-5 py-3"><a class="text-decoration-none text-white" href="{% url "scan_upload" objects.batch_id objects.title %} ">UPLOAD</a></button>
+                <button class="btn btn-success option_btn px-5 py-3"><a class="text-decoration-none text-white" href="{% url "scan" objects.batch_id objects.title 1%}">CAMERA</a></button>
+            </div>
         </div>
     </div>
 </div>

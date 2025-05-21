@@ -38,7 +38,7 @@ if results[0].boxes is not None:
         #     if conf > 0.35:
         #         label = f"{names[int(cls)]} {conf:.2f}"
         #         annotator.box_label(box, label, color=colors(int(cls), True))
-        if conf > 0.35:
+        if conf > 0.5:
             label = f"{names[int(cls)]} {conf:.2f}"
             annotator.box_label(box, label, color=colors(int(cls), True))
 

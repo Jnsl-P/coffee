@@ -205,9 +205,23 @@ table.custom-bordered td:first-child {
   background: rgba(255, 255, 255, 0.1); /* semi-transparent background */
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  
 }
 
+.option-container{
+  background-color: rgb(187, 187, 187);
+  width: 30%;
+  max-width: 800px;
+  min-width: 153px;
+  border-radius: 15px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.option_btn{
+  font-size: 2rem;
+}
 
 
 
