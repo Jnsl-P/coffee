@@ -100,9 +100,7 @@ class ObjectDetection:
         try:
             # ==================== YOLO Model Inference ====================
             self.frame = image_frame
-            labeling_infos = []
-
-            # **** SEGMENTATION ****
+            
             segment_results = self.model_good_bad(self.frame)[0] 
             boxes = []
             confidences = []
@@ -119,8 +117,7 @@ class ObjectDetection:
                     class_ids.append(int(box.cls))
                     
             # Apply NMS (Non-Maximum Suppression) 
-            # segment_nms_indices = self.apply_nms(boxes, confidences)
-            
+           
             boxes_tensor = torch.tensor(boxes_xyxy)
             scores_tensor = torch.tensor(scores)
             nms_threshold = 0.4
@@ -139,26 +136,36 @@ class ObjectDetection:
                     # KEEP THIS — copies only "bad" beans from original image
                     mask[y1:y2, x1:x2] = self.frame[y1:y2, x1:x2]
             
-            # Merge: keep "bad" bean areas from original image, blur the rest
             focused = np.where(mask.any(axis=2, keepdims=True), mask, blurred)
 
-            # defect detect
+            # ==================== DEFECT DETECTION ====================
             df_result = self.model_classification(focused)
-            annotator = Annotator(self.frame, line_width=2)  # Use focused image, not img
+            annotator = Annotator(self.frame, line_width=2)
             names = self.model_classification.model.names
+            self.defects = {}  # Reset or initialize defect counts
 
             if df_result[0].boxes is not None:
-                boxes = df_result[0].boxes.xyxy.cpu().tolist()
-                clss = df_result[0].boxes.cls.cpu().tolist()
-                confs = df_result[0].boxes.conf.cpu().tolist()
+                boxes = df_result[0].boxes.xyxy.cpu()
+                clss = df_result[0].boxes.cls.cpu()
+                confs = df_result[0].boxes.conf.cpu()
 
-                for box, cls, conf in zip(boxes, clss, confs):
-                    if  conf > 0.3:
-                        label = f"{names[int(cls)]}"
-                        annotator.box_label(box, label, color=colors(int(cls), True))
+                # Prepare for NMS
+                boxes_tensor = boxes
+                scores_tensor = confs
+                nms_threshold = 0.4
+                keep_indices = ops.nms(boxes_tensor, scores_tensor, nms_threshold)
+
+                for idx in keep_indices:
+                    box = boxes_tensor[idx].tolist()
+                    cls = int(clss[idx])
+                    conf = float(confs[idx])
+
+                    if conf > 0.3:
+                        label = f"{names[cls]}"
+                        annotator.box_label(box, f"{label}", color=colors(cls, True))
                         self.defects[label] = self.defects.get(label, 0) + 1
-                        
-            annotated_frame = annotator.result()                
+
+            annotated_frame = annotator.result()
             return annotated_frame
         except Exception as err:
             print("ERROR:", err)

@@ -104,22 +104,7 @@ class DashboardListView(LoginRequiredMixin, ListView):
         end_index = min(paginator.num_pages + 1, page_obj.number + 3)
         context['page_range'] = range(start_index, end_index)
         return context
-    
-    # def get_context_data(self, *args, **kwargs):
-    #     context = super().get_context_data(**kwargs)                            
-    #     # context['current_time'] =  datetime.now()        
-    #     context['current_time'] = datetime.now().strftime("%H:%M:%S")
         
-    #     page_obj = context['page_obj']
-    #     print(page_obj)
-    #     paginator = page_obj.paginator
-
-    #     # Custom page range calculation
-    #     start_index = max(1, page_obj.number - 2)
-    #     end_index = min(paginator.num_pages + 1, page_obj.number + 3)
-    #     context['page_range'] = range(start_index, end_index)
-    #     return context
-    
     def render_to_response(self, context, **response_kwargs):
         # Check if request is AJAX
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -552,13 +537,13 @@ class SummaryView(LoginRequiredMixin, TemplateView):
         
         equivalent_values = {
             "full black":[1, "1:1"]
-            ,"full sour":[1, "1:1"]
+            ,"fsour":[1, "1:1"]
             ,"dried cherry":[1, "1:1"]
             ,"fungus":[1, "1:1"]
             ,"foreign matter":[1, "1:1"]
-            ,"severe insect":[5, "5:1"]
+            ,"sev insect":[5, "5:1"]
             ,"partial black":[3, "3:1"]
-            ,"partial sour":[3, "3:1"]
+            ,"psour":[3, "3:1"]
             ,"parchment":[5, "5:1"]
             ,"floater":[5, "5:1"]
             ,"immature":[5, "5:1"]

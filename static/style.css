@@ -208,7 +208,7 @@ table.custom-bordered td:first-child {
 }
 
 .option-container{
-  background-color: rgb(187, 187, 187);
+  background-color: rgb(223, 221, 221);
   width: 30%;
   max-width: 800px;
   min-width: 153px;
@@ -220,7 +220,7 @@ table.custom-bordered td:first-child {
 }
 
 .option_btn{
-  font-size: 2rem;
+  font-size: 1rem;
 }
 
 
